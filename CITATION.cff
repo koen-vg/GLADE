@@ -13,9 +13,13 @@ type: software
 authors:
   - family-names: "van Greevenbroek"
     given-names: "Koen"
-version: "0.1.0"
-date-released: "2026-06-09"  # TODO: set to the actual tag/release date if it slips.
-# TODO: add the Zenodo DOI here (as an `identifiers:` entry) once the release is archived.
+version: "0.1.1"
+date-released: "2026-06-09"
+doi: "10.5281/zenodo.20618170"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.20618170"
+    description: "Concept DOI (resolves to the latest archived version)"
 license: "GPL-3.0-or-later"
 repository-code: "https://github.com/koen-vg/GLADE"
 url: "https://sustainable-solutions-lab.github.io/GLADE/"

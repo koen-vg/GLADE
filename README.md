@@ -11,7 +11,8 @@ This branch (`orthogonal-opportunities`) is a frozen snapshot of
 produce the model results behind the paper on the limited synergies between
 dietary-health and greenhouse-gas-emission goals in the global food system.
 
-It is archived for reproducibility and citation (Zenodo DOI: _to be minted_).
+It is archived for reproducibility and citation (Zenodo concept DOI:
+<https://doi.org/10.5281/zenodo.20618170>).
 **For the maintained, general-purpose model use the main project instead** --
 this branch is not updated. Documentation:
 <https://sustainable-solutions-lab.github.io/GLADE/>.
@@ -19,7 +20,7 @@ this branch is not updated. Documentation:
 The figure-building, plotting, and manuscript code lives in the companion
 **paper repository**
 (<https://github.com/koen-vg/reducing-health-climate-impacts-manuscript>;
-Zenodo DOI _to be added_). This snapshot only produces
+Zenodo concept DOI <https://doi.org/10.5281/zenodo.20618172>). This snapshot only produces
 the GLADE model outputs that those figure scripts read; the per-figure
 input map is in that repo's `scripts/README.md`.
 

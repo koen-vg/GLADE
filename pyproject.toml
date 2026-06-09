@@ -11,7 +11,7 @@
 
 [project]
 name = "glade-workflow"
-version = "0.1.0"
+version = "0.1.1"
 description = "GLADE model workflow scripts"
 requires-python = ">=3.13"
 

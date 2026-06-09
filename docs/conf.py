@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../workflow/scripts"))
 project = "GLADE"
 copyright = "2026, Koen van Greevenbroek"
 author = "Koen van Greevenbroek"
-release = "0.1.0"
+release = "0.1.1"
 
 # General configuration
 extensions = [

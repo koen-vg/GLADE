@@ -4,7 +4,7 @@
 
 [workspace]
 name = "glade"
-version = "0.1.0"
+version = "0.1.1"
 description = "GLADE: Global Land, Agriculture, Diet and Emissions model"
 channels = ["conda-forge"]
 platforms = ["linux-64"]
