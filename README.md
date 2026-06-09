@@ -4,26 +4,26 @@ SPDX-FileCopyrightText: 2026 Koen van Greevenbroek
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# food-opt -- paper reproduction snapshot
+# GLADE -- paper reproduction snapshot
 
 This branch (`orthogonal-opportunities`) is a frozen snapshot of
-[food-opt](https://github.com/Sustainable-Solutions-Lab/food-opt) used to
+[GLADE](https://github.com/Sustainable-Solutions-Lab/GLADE) used to
 produce the model results behind the paper on the limited synergies between
 dietary-health and greenhouse-gas-emission goals in the global food system.
 
 It is archived for reproducibility and citation (Zenodo DOI: _to be minted_).
 **For the maintained, general-purpose model use the main project instead** --
 this branch is not updated. Documentation:
-<https://sustainable-solutions-lab.github.io/food-opt/>.
+<https://sustainable-solutions-lab.github.io/GLADE/>.
 
 The figure-building, plotting, and manuscript code lives in the companion
 **paper repository** (_link / DOI to be added_). This snapshot only produces
-the food-opt model outputs that those figure scripts read; the per-figure
+the GLADE model outputs that those figure scripts read; the per-figure
 input map is in that repo's `scripts/README.md`.
 
 ## Reproducing the paper's model outputs
 
-1. Install and configure food-opt as described in "Installation & setup"
+1. Install and configure GLADE as described in "Installation & setup"
    below (pixi environment, API credentials, manual dataset downloads).
 2. Build the targets for each part of the paper (commands run from this
    checkout via the `tools/smk` wrapper):
@@ -71,7 +71,7 @@ repository (see its README).
 
 ### Configs used by the paper
 
-| Paper element | Config | Key food-opt targets |
+| Paper element | Config | Key GLADE targets |
 |---|---|---|
 | Fig. 1, ED map, transition tables, Methods numbers | `config/central.yaml` | `results/central/{solved,analysis}/scen-{reference,central}/...` |
 | Figs. 2-4, ED burden, SI combined sensitivity | `config/gsa.yaml` | `results/gsa/surrogates/surrogate_{gsa,gsa-l1-low,gsa-l1-high}_xgb.pkl` (+ `surrogate_validation_gsa_xgb.parquet`) |
@@ -94,8 +94,8 @@ paper; they remain for snapshot fidelity.)
 
 ```bash
 git clone --branch orthogonal-opportunities \
-  https://github.com/koen-vg/food-opt.git
-cd food-opt
+  https://github.com/koen-vg/GLADE.git
+cd GLADE
 pixi install
 ```
 
@@ -108,7 +108,7 @@ pixi install
   (<https://vizhub.healthdata.org/>) and the Global Dietary Database
   (<https://globaldietarydatabase.org/>) require free registration. Place the
   files under `data/manually_downloaded/`; see the
-  [Data Sources documentation](https://sustainable-solutions-lab.github.io/food-opt/data_sources.html#manual-download-checklist).
+  [Data Sources documentation](https://sustainable-solutions-lab.github.io/GLADE/data_sources.html#manual-download-checklist).
 
 The first run downloads several gigabytes of global datasets (GAEZ, GADM, land
 cover) and may take 30+ minutes; subsequent runs are fast.
@@ -125,6 +125,6 @@ tools/smk -e gurobi -j4 --configfile config/central.yaml
 
 ## License
 
-food-opt is licensed under GPL-3.0-or-later; documentation and data outputs
+GLADE is licensed under GPL-3.0-or-later; documentation and data outputs
 follow CC-BY-4.0 (with third-party datasets under their own terms). See
 `LICENSES/` and `REUSE.toml`.
