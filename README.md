@@ -38,6 +38,10 @@ tools/smk -j4 --configfile config/central.yaml
 # GHG-price fixed-diet sweep: Figure 3 land-use / feed / FCR panels.
 tools/smk -j4 --configfile config/ghg_sensitivity_fixed_diet.yaml
 
+# GHG-price flexible-diet sweep: ED reforestation surfaces and the SI
+# emissions-by-source panel (net-emissions analysis tables only).
+tools/smk -j4 --configfile config/ghg_sensitivity_flexible_diet.yaml -- analyze_all_scenarios
+
 # Spatial-resolution sensitivity (SI).
 for R in 250 500 750 1000 1500 2000; do
   tools/smk -j4 --configfile config/region_resolution/R${R}.yaml
@@ -56,9 +60,10 @@ consume only the fitted XGBoost surrogate bundles:
 ```bash
 # After the cluster solve, fit the surrogates (locally is fine):
 tools/smk -j4 --configfile config/gsa.yaml -- \
-  results/gsa/surrogates/surrogate_gsa_xgb.pkl \
-  results/gsa/surrogates/surrogate_gsa-l1-low_xgb.pkl \
-  results/gsa/surrogates/surrogate_gsa-l1-high_xgb.pkl
+  results/gsa/surrogates/surrogate_gsa_xgb.pkl
+tools/smk -j4 --configfile config/gsa_l1.yaml -- \
+  results/gsa_l1/surrogates/surrogate_gsa-l1-low_xgb.pkl \
+  results/gsa_l1/surrogates/surrogate_gsa-l1-high_xgb.pkl
 tools/smk -j4 --configfile config/gsa_fixed_diet.yaml -- \
   results/gsa_fixed_diet/surrogates/surrogate_gsa-fd_xgb.pkl
 ```
@@ -76,8 +81,10 @@ repository (see its README).
 | Paper element | Config | Key GLADE targets |
 |---|---|---|
 | Fig. 1, ED map, transition tables, Methods numbers | `config/central.yaml` | `results/central/{solved,analysis}/scen-{reference,central}/...` |
-| Figs. 2-4, ED burden, SI combined sensitivity | `config/gsa.yaml` | `results/gsa/surrogates/surrogate_{gsa,gsa-l1-low,gsa-l1-high}_xgb.pkl` (+ `surrogate_validation_gsa_xgb.parquet`) |
+| Figs. 2-4, ED burden | `config/gsa.yaml` | `results/gsa/surrogates/surrogate_gsa_xgb.pkl` (+ `surrogate_validation_gsa_xgb.parquet`) |
+| SI combined- and stability-sensitivity | `config/gsa_l1.yaml` | `results/gsa_l1/surrogates/surrogate_gsa-l1-{low,high}_xgb.pkl` |
 | Fig. 3 (fixed-diet abatement, FCR) | `config/gsa_fixed_diet.yaml`, `config/ghg_sensitivity_fixed_diet.yaml` | `surrogate_gsa-fd_xgb.pkl`; `results/ghg_sensitivity_fixed_diet/{solved/model_scen-ghg_{5,50,500}.nc,analysis/scen-ghg_*/feed_by_source.parquet}` |
+| ED reforestation surfaces, SI emissions by source | `config/ghg_sensitivity_flexible_diet.yaml` | `results/ghg_sensitivity_flexible_diet/analysis/scen-ghg_*/net_emissions.parquet` |
 | SI spatial-resolution sensitivity | `config/region_resolution/R{250..2000}.yaml` | `results/region_resolution_R*/analysis/scen-central/{net_emissions,land_use,health_totals}.parquet` |
 | Methods slack macros | `config/validation.yaml` | `results/validation/plots/scen-default/{slack_overview,food_group_slack}.csv` |
 
