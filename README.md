@@ -17,7 +17,9 @@ this branch is not updated. Documentation:
 <https://sustainable-solutions-lab.github.io/GLADE/>.
 
 The figure-building, plotting, and manuscript code lives in the companion
-**paper repository** (_link / DOI to be added_). This snapshot only produces
+**paper repository**
+(<https://github.com/koen-vg/reducing-health-climate-impacts-manuscript>;
+Zenodo DOI _to be added_). This snapshot only produces
 the GLADE model outputs that those figure scripts read; the per-figure
 input map is in that repo's `scripts/README.md`.
 

@@ -13,8 +13,9 @@ type: software
 authors:
   - family-names: "van Greevenbroek"
     given-names: "Koen"
-# TODO: add co-authors.
-# TODO: set version + date-released at tag time (0.1.0).
+version: "0.1.0"
+date-released: "2026-06-09"  # TODO: set to the actual tag/release date if it slips.
+# TODO: add the Zenodo DOI here (as an `identifiers:` entry) once the release is archived.
 license: "GPL-3.0-or-later"
-repository-code: "https://github.com/Sustainable-Solutions-Lab/GLADE"
+repository-code: "https://github.com/koen-vg/GLADE"
 url: "https://sustainable-solutions-lab.github.io/GLADE/"
