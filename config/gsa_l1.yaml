@@ -135,7 +135,9 @@ scenarios:
           health_relative_risk:
             protective: "{rr_protective}"
             harmful: "{rr_harmful}"
-          max_reforestation_fraction: "{reforest_fraction}"
+        land:
+          reforestation_cap:
+            max_fraction: "{reforest_fraction}"
         health:
           value_per_yll: "{value_per_yll}"
         emissions:

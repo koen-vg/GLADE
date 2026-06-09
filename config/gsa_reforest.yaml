@@ -16,7 +16,7 @@
 #     weighting the unconstrained model reforests ~80-90% of some countries'
 #     agricultural area (e.g. Brazil); this parameter tests the sensitivity
 #     of results to disallowing such concentrated reforestation. Wired to the
-#     solve-time per-country constraint via sensitivity.max_reforestation_fraction.
+#     solve-time per-country constraint via land.reforestation_cap.max_fraction.
 
 name: "gsa_reforest"
 scenarios:
@@ -109,7 +109,9 @@ scenarios:
           health_relative_risk:
             protective: "{rr_protective}"
             harmful: "{rr_harmful}"
-          max_reforestation_fraction: "{reforest_fraction}"
+        land:
+          reforestation_cap:
+            max_fraction: "{reforest_fraction}"
         health:
           value_per_yll: "{value_per_yll}"
         emissions:

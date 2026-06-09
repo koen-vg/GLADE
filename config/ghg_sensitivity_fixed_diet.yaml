@@ -45,10 +45,11 @@ scenarios:
 # its current agricultural land. Matches the paper's surrogate sweeps
 # (reforest_fraction: 0.5 in paper/plotting_config.yaml) so the discrete
 # GHG-price sweep (figure 3, SI emissions-by-source) is consistent with the
-# capped response surfaces. Deep-merges with the reforestation_cap_buffer_mha
+# capped response surfaces. Deep-merges with the land.reforestation_cap.buffer_mha
 # default from config/default.yaml.
-sensitivity:
-  max_reforestation_fraction: 0.5
+land:
+  reforestation_cap:
+    max_fraction: 0.5
 
 # Fix diet to baseline
 validation:

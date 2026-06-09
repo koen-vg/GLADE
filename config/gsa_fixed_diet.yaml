@@ -101,7 +101,9 @@ scenarios:
             luc: "{luc_factor}"
           food_loss_waste: "{flw_factor}"
           feed_conversion: "{fcr_factor}"
-          max_reforestation_fraction: "{reforest_fraction}"
+        land:
+          reforestation_cap:
+            max_fraction: "{reforest_fraction}"
         emissions:
           ghg_price: "{ghg_price}"
 
