@@ -221,8 +221,8 @@ Controlled by ``diet.anchor_groups_to_gbd``:
 * ``true`` / ``false`` -- force anchoring on or off, decoupled from the
   health module.
 
-When anchoring is on, the run needs the manually-downloaded IHME GBD
-data (see :doc:`data_sources`); when off, it needs none of it.
+When anchoring is on, the run needs the manually downloaded IHME GBD dietary
+exposure archives (see :doc:`data_sources`); when off, it does not.
 
 When to turn it on
 ~~~~~~~~~~~~~~~~~~~

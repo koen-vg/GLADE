@@ -35,6 +35,11 @@ class TestValidateScenarioOverrides:
         with pytest.raises(ValueError, match="structural key"):
             validate_scenario_overrides(defs)
 
+    def test_rejects_mortality_source_override(self):
+        defs = {"bad": {"health": {"mortality_source": "ihme_gbd"}}}
+        with pytest.raises(ValueError, match="structural key"):
+            validate_scenario_overrides(defs)
+
     def test_collects_multiple_errors(self):
         defs = {
             "bad1": {"countries": ["USA"]},

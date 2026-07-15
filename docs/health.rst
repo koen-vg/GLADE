@@ -15,11 +15,11 @@ nonlinear relationships into a linear optimisation framework.
 .. admonition:: The health module is off by default
    :class: note
 
-   ``health.enabled`` defaults to ``false``. The health module relies on
-   manually-downloaded IHME GBD data (mortality rates and dietary
-   risk-exposure; see :doc:`data_sources`), which cannot be fetched
-   automatically. When health is disabled, none of that data is required
-   and the workflow builds, solves, and analyses without it -- the
+   ``health.enabled`` defaults to ``false``. WHO GHE mortality is retrieved
+   automatically by default. GBD dietary risk-exposure remains a manual input
+   when baseline-diet anchoring is enabled; see :doc:`data_sources`. When
+   health and anchoring are disabled, no manual health input is required and
+   the workflow builds, solves, and analyses without it -- the
    YLL stores, health objective term, and health analysis/plots are
    simply omitted, and a clear error is raised if the data is missing
    while health is on.
@@ -327,6 +327,15 @@ Appendix 1, p. 171).
   accounting.
 - **Disease causes modelled**: CHD (coronary heart disease), Stroke, T2DM (type
   2 diabetes), CRC (colorectal cancer)
+- **Diabetes cause scope**: The relative-risk curves represent type 2 diabetes,
+  while both supported mortality inputs expose broad diabetes mellitus in the
+  mortality preparation used here. The current implementation therefore uses
+  broad diabetes mortality as the T2DM baseline burden. Alternatives would be
+  to estimate type 2 shares by country and age from another source, redefine
+  the health pathway around broad diabetes with matching relative risks, or
+  retain IHME mortality only for diabetes. Each adds either a new assumption,
+  a new epidemiological input, or the manual download that WHO GHE is intended
+  to remove.
 - **Sugar**: The GBD dataset includes relative risk factors for
   sugar-sweetened beverages, which are not represented in the model
   and thus not included here. No relative risk factors are given for
@@ -569,14 +578,20 @@ Data Inputs
 
 ``workflow/scripts/prepare_health_costs.py`` assembles the following datasets:
 
+``health.mortality_source`` is a structural base-config option and cannot be
+changed by a scenario override.
+
 - **Baseline diet** (``processing/{name}/dietary_intake.csv``): average
   daily food-group intake by country, merged from GDD-IA and NHANES
   (USA) — see :doc:`current_diets`. The per-food disaggregation lives
   in ``processing/{name}/baseline_diet.csv``.
 - **Relative risks** (``processing/{name}/health/relative_risks.csv``):
   dose–response pairs for each (risk factor, cause) combination from GBD
-- **Mortality rates** (``processing/{name}/health/gbd_mortality_rates.csv``):
-  cause-specific death rates by age, country and year
+- **Mortality rates** (``processing/{name}/health/who_ghe_mortality_rates.csv``
+  by default): cause-specific death rates by age, country and year. The IHME
+  alternative is ``gbd_mortality_rates.csv``. WHO provides only an aggregate
+  85+ rate; applying it to the model's three oldest age bands preserves total
+  deaths over 85+ but approximates their YLL and relative-risk age weights.
 - **Population and life tables** (``processing/{name}/population_age.csv`` and
   ``processing/{name}/health/life_table.csv``): age-structured population counts
   and remaining life expectancy schedules

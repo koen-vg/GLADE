@@ -79,7 +79,7 @@ def _is_solve_time_key(key):
 # Single source of truth shared by the Snakemake rules (model.smk,
 # analysis.smk, deviation_penalty.smk) and the cluster manifest exporter
 # (build_scenario_entry below). These inputs are only wired up when the health
-# module is enabled, so that no IHME GBD data is required otherwise.
+# module is enabled, so that no health preparation is required otherwise.
 HEALTH_INPUT_FILES = {
     "health_risk_breakpoints": "risk_breakpoints.csv",
     "health_cluster_cause": "cluster_cause_baseline.csv",

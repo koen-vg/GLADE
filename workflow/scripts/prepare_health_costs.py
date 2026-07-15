@@ -352,7 +352,7 @@ class RelativeRiskTable(dict[tuple[str, str, str], dict[str, np.ndarray]]):
     """Container mapping (risk, cause, age) to exposure grids and log RR values."""
 
 
-# The 15 adult age groups from GBD, matching population/mortality age buckets.
+# The 15 adult age groups shared by relative-risk, population, and mortality data.
 ADULT_AGES: list[str] = [
     "25-29",
     "30-34",

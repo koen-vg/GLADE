@@ -15,7 +15,7 @@ exposure file.
 Input:
     - Two directories of GBD 2023 risk-exposure CSVs (one file per risk
       factor; the release splits the 15 factors across two archives)
-    - The GBD 2023 death-rates CSV, used purely as the canonical list of
+    - The public GBD 2021 location hierarchy, used as the canonical list of
       national (level-3) GBD location ids. The bulk exposure files also
       contain subnational units (US states, UK nations, Indian/Pakistani
       provinces, ...) whose names collide with countries (e.g. "Georgia"
@@ -81,6 +81,7 @@ COUNTRY_NAME_OVERRIDES = {
     "Saint Martin (French part)": "MAF",
     "Sint Maarten (Dutch part)": "SXM",
     "The former Yugoslav Republic of Macedonia": "MKD",
+    "Taiwan (Province of China)": "TWN",
     "Türkiye": "TUR",
     "United Kingdom of Great Britain and Northern Ireland": "GBR",
     "United Republic of Tanzania": "TZA",
@@ -174,21 +175,30 @@ def parse_risk_token(stem: str) -> str | None:
     return None
 
 
-def build_national_location_map(death_rates_path: str) -> dict[int, str]:
-    """Map national GBD location_id -> ISO3 from the death-rates file.
-
-    The death-rates query selects "all countries and territories", so its
-    location set is exactly the 204 national (level-3) GBD locations. We
-    use it to restrict the bulk exposure files to national rows.
-    """
-    ref = pd.read_csv(
-        death_rates_path, usecols=["location_id", "location_name"]
-    ).drop_duplicates()
+def build_national_location_map(hierarchy_path: str) -> dict[int, str]:
+    """Map national GBD location_id to ISO3 from the public hierarchy."""
+    hierarchy = pd.read_excel(hierarchy_path, sheet_name="GBD 2021 Locations Hierarchy")
+    required = {"Location ID", "Location Name", "Level"}
+    missing = required - set(hierarchy.columns)
+    if missing:
+        raise ValueError(
+            f"GBD location hierarchy is missing columns: {sorted(missing)}"
+        )
+    ref = hierarchy.loc[
+        hierarchy["Level"] == 3, ["Location ID", "Location Name"]
+    ].drop_duplicates()
     loc_to_iso3: dict[int, str] = {}
-    for location_id, location_name in ref.itertuples(index=False):
+    for location_id, location_name in ref.itertuples(index=False, name=None):
         iso3 = map_country_name_to_iso3(location_name)
         if iso3 is not None:
             loc_to_iso3[int(location_id)] = iso3
+    mapped = pd.Series(loc_to_iso3, dtype=str)
+    duplicates = mapped.duplicated(keep=False)
+    if duplicates.any():
+        duplicate_codes = sorted(set(mapped[duplicates]))
+        raise ValueError(
+            f"GBD national locations map to duplicate ISO3: {duplicate_codes}"
+        )
     logger.info(
         "Built national location map: %d / %d locations mapped to ISO3",
         len(loc_to_iso3),

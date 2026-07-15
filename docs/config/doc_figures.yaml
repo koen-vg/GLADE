@@ -87,7 +87,8 @@ health:
   # Documentation figures include health-cluster maps and the diet-attributable
   # burden choropleth, which need the health data-prep outputs (clusters etc.).
   # value_per_yll: 0 keeps health out of the objective (post-hoc evaluation
-  # only). Needs the manually-downloaded IHME GBD data.
+  # only). GBD dietary exposure is the remaining manual input; WHO mortality
+  # is downloaded automatically.
   enabled: true
   value_per_yll: 0
 

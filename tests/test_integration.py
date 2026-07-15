@@ -9,7 +9,7 @@ configuration (tests/config/test.yaml) with reduced spatial resolution and
 a small crop subset.
 """
 
-from conftest import run_snakemake_target
+from conftest import CONFIG_TEST_HEALTH, run_snakemake_target
 import pytest
 
 
@@ -23,6 +23,17 @@ def test_workflow_dryrun():
     Uses forceall to validate the complete DAG as if running from scratch.
     """
     run_snakemake_target("analyze_all_scenarios", dryrun=True, forceall=True)
+
+
+@pytest.mark.integration
+def test_who_health_workflow_dryrun():
+    """Dryrun the health preparation DAG with automatic WHO mortality."""
+    run_snakemake_target(
+        "processing/test_health/health/cluster_cause_baseline.csv",
+        dryrun=True,
+        forceall=True,
+        additional_configfiles=(CONFIG_TEST_HEALTH,),
+    )
 
 
 @pytest.mark.integration

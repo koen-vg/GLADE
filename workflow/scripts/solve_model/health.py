@@ -6,8 +6,8 @@
 
 This module implements health cost constraints as described in docs/health.rst.
 The health objective quantifies the cost of dietary choices in terms of years
-of life lost (YLL), using epidemiological dose-response relationships from
-the Global Burden of Disease (GBD) Study.
+of life lost (YLL), using configured mortality estimates and epidemiological
+dose-response relationships from the Global Burden of Disease (GBD) Study.
 
 Mathematical Formulation
 ------------------------
@@ -176,8 +176,8 @@ MAX_HEALTH_TEMPORAL_GAP_YEARS = 15
 
 
 def _check_health_temporal_gap(baseline_year: int, planning_year: int) -> None:
-    # YLL rates in cluster_cause are computed against baseline-year (GBD
-    # vintage) population in prepare_health_costs, then re-applied to the
+    # YLL rates in cluster_cause are computed against baseline-year mortality
+    # and population in prepare_health_costs, then re-applied to the
     # planning-year cluster_population at solve time. The implicit
     # assumption is that age-standardised mortality rates are stable
     # across the temporal gap; for gaps > ~15y, demographic and
@@ -190,8 +190,8 @@ def _check_health_temporal_gap(baseline_year: int, planning_year: int) -> None:
             f"Health cost calc mixes baseline_year={baseline_year} mortality "
             f"rates with planning_year={planning_year} population (gap "
             f"{gap_years}y > {MAX_HEALTH_TEMPORAL_GAP_YEARS}y). Use "
-            "vintage-matched GBD rates (re-download with a closer year, "
-            "or extend the tolerance after auditing the assumption)."
+            "mortality data from a closer supported baseline year, or extend "
+            "the tolerance after auditing the assumption."
         )
     if gap_years > 0:
         logger.info(

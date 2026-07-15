@@ -48,3 +48,20 @@ def validate_health_map(config: dict, project_root: Path) -> None:
             "health.risk_factors missing from food_groups.max_per_capita: "
             f"{sorted(missing_caps)}"
         )
+
+    if health.get("mortality_source") == "who_ghe":
+        ghe_cause_id: dict[str, int] = health.get("ghe_cause_id", {})
+        missing_ids = causes - set(ghe_cause_id)
+        if missing_ids:
+            raise ValueError(
+                f"health.ghe_cause_id missing causes: {sorted(missing_ids)}"
+            )
+
+        selected_ids = [ghe_cause_id[cause] for cause in causes]
+        if any(
+            isinstance(cause_id, bool) or not isinstance(cause_id, int) or cause_id <= 0
+            for cause_id in selected_ids
+        ):
+            raise ValueError("health.ghe_cause_id values must be positive integers")
+        if len(set(selected_ids)) != len(selected_ids):
+            raise ValueError("health.ghe_cause_id values must be unique")

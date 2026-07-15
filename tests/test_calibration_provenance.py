@@ -32,6 +32,10 @@ MINIMAL_CONFIG = {
     "crops": ["wheat", "maize"],
     "planning_horizon": 2030,
     "baseline_year": 2020,
+    "health": {
+        "mortality_source": "who_ghe",
+        "ghe_cause_id": {"CHD": 1130},
+    },
     "emissions": {"ghg_price": 100},
     "validation": {"use_actual_yields": True},
     "grazing": {
@@ -61,6 +65,8 @@ class TestStructuralSnapshot:
             )
         assert "name" not in snap
         assert "planning_horizon" not in snap
+        assert "health.mortality_source" not in snap
+        assert "health.ghe_cause_id.CHD" not in snap
         assert "calibration.source" not in snap
         assert not any(
             k.startswith("grazing.grassland_forage_calibration") for k in snap

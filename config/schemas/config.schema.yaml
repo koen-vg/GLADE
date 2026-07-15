@@ -84,7 +84,7 @@ properties:
     type: integer
     minimum: 2010
     maximum: 2020
-    description: "Reference year for observed baseline data. Controls FAOSTAT production, GDD-IA dietary intake (nearest five-year release), GBD health data, ESA CCI land cover, and LUIcube grassland data."
+    description: "Reference year for observed baseline data. Controls FAOSTAT production, GDD-IA dietary intake (nearest five-year release), health data, ESA CCI land cover, and LUIcube grassland data."
 
   currency_base_year:
     type: integer
@@ -1188,6 +1188,7 @@ properties:
     type: object
     required:
       - enabled
+      - mortality_source
       - segment_formulation
       - relax_and_fix_max_gap
       - region_clusters
@@ -1200,12 +1201,17 @@ properties:
       - risk_cause_map
       - gbd_rei_id
       - gbd_cause_id
+      - ghe_cause_id
       - clustering
     additionalProperties: false
     properties:
       enabled:
         type: boolean
         description: "Whether to include health costs in the objective function"
+      mortality_source:
+        type: string
+        enum: ["who_ghe", "ihme_gbd"]
+        description: "Age-specific mortality source; WHO GHE is retrieved automatically and IHME GBD is a manual Results Tool export"
       segment_formulation:
         type: string
         enum: ["sos1", "relax_and_fix"]
@@ -1253,7 +1259,7 @@ properties:
         items:
           type: string
           pattern: "^[A-Za-z0-9]+$"
-        description: "Health outcomes/causes to consider (IHME GBD codes)"
+        description: "Health outcomes/causes represented in mortality and relative-risk data"
       risk_cause_map:
         type: object
         description: "Explicit mapping from risk_factor to list of causes it affects"
@@ -1274,6 +1280,13 @@ properties:
         description: "GBD cause_id per cause, for the Burden-of-Proof retrieval"
         additionalProperties:
           type: integer
+      ghe_cause_id:
+        type: object
+        minProperties: 1
+        description: "WHO GHE cause identifier per model cause"
+        additionalProperties:
+          type: integer
+          minimum: 1
       alternative_rr:
         type: object
         description: "Per risk-factor overrides using log-linear RR from literature CSV files"

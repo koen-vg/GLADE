@@ -70,6 +70,11 @@ introduce breaking changes to configuration and outputs.
 
 ### Changed
 
+- WHO Global Health Estimates mortality is now retrieved automatically and is
+  the default for the health module. Set `health.mortality_source: ihme_gbd`
+  to retain the manual IHME GBD mortality export. Default health-enabled runs
+  therefore require one fewer manual dataset. Mortality-source differences
+  change health-burden results; select `ihme_gbd` to reproduce earlier runs.
 - The **GDD-IA baseline-diet dataset is now retrieved automatically** from
   Zenodo ([10.5281/zenodo.20818140](https://doi.org/10.5281/zenodo.20818140),
   CC-BY-4.0) instead of being obtained on personal request and placed under

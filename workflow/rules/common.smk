@@ -106,43 +106,61 @@ def gbd_anchoring_enabled():
     return resolve_gbd_anchoring(config)
 
 
-def gbd_data_required():
-    """True if the manually-downloaded IHME GBD data is needed by this run.
+def manual_gbd_data_required():
+    """True if this run needs any manually downloaded IHME GBD input."""
+    return gbd_anchoring_enabled() or (
+        health_required() and config["health"]["mortality_source"] == "ihme_gbd"
+    )
 
-    The GBD intake/mortality prep (and thus the IHME source files) is required
-    whenever the baseline diet is anchored to GBD or the health module is
-    enabled in any scenario.
-    """
-    return gbd_anchoring_enabled() or health_required()
+
+def who_ghe_cause_ids():
+    """Return sorted WHO GHE identifiers for the configured health causes."""
+    return sorted(
+        config["health"]["ghe_cause_id"][cause] for cause in config["health"]["causes"]
+    )
+
+
+def who_ghe_mortality_path():
+    """Return a cache path keyed by year and selected WHO GHE causes."""
+    cause_token = "-".join(str(cause_id) for cause_id in who_ghe_cause_ids())
+    return (
+        f"data/downloads/who_ghe/mortality_{config['baseline_year']}"
+        f"_causes-{cause_token}.csv"
+    )
 
 
 def assert_gbd_data_available():
     """Fail early with actionable guidance if GBD data is needed but absent.
 
     Snakemake would otherwise report a terse "missing input" deep in the DAG.
-    Only enforced when gbd_data_required(); a health-off, anchoring-off run
-    needs none of these files.
+    WHO GHE mortality and the public GBD location hierarchy are retrieved by
+    the workflow and therefore do not appear in this check.
     """
-    if not gbd_data_required():
+    if not manual_gbd_data_required():
         return
     year = config["baseline_year"]
-    required = {
-        f"data/manually_downloaded/IHME-GBD_2023-death-rates-{year}.csv": (
-            "IHME GBD mortality / national-location list"
-        ),
-        "data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_1": (
-            "IHME GBD dietary risk-exposure archive (part 1)"
-        ),
-        "data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_2": (
-            "IHME GBD dietary risk-exposure archive (part 2)"
-        ),
-    }
+    required = {}
+    if health_required() and config["health"]["mortality_source"] == "ihme_gbd":
+        required[f"data/manually_downloaded/IHME-GBD_2023-death-rates-{year}.csv"] = (
+            "IHME GBD mortality"
+        )
+    if gbd_anchoring_enabled():
+        required.update(
+            {
+                "data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_1": (
+                    "IHME GBD dietary risk-exposure archive (part 1)"
+                ),
+                "data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_2": (
+                    "IHME GBD dietary risk-exposure archive (part 2)"
+                ),
+            }
+        )
     missing = [(p, desc) for p, desc in required.items() if not Path(p).exists()]
     if not missing:
         return
     reasons = []
-    if health_required():
-        reasons.append("health.enabled is true (base config or a scenario)")
+    if health_required() and config["health"]["mortality_source"] == "ihme_gbd":
+        reasons.append("health.mortality_source is ihme_gbd")
     if gbd_anchoring_enabled():
         reasons.append("diet.anchor_groups_to_gbd resolves to true")
     listing = "\n".join(f"  - {p}  ({desc})" for p, desc in missing)
@@ -151,11 +169,11 @@ def assert_gbd_data_available():
         + " and ".join(reasons)
         + ", but the following are missing:\n"
         + listing
-        + "\n\nEither place the files (see data/manually_downloaded/README.md "
-        "for the GBD Results Tool queries), or run without GBD data by setting "
-        "health.enabled: false and diet.anchor_groups_to_gbd: false in your "
-        "config. Note that disabling anchoring changes the baseline diet "
-        "(see docs/current_diets.rst)."
+        + "\n\nPlace the files as described in "
+        "data/manually_downloaded/README.md, or select "
+        "health.mortality_source: who_ghe and/or disable "
+        "diet.anchor_groups_to_gbd as applicable. Disabling anchoring changes "
+        "the baseline diet (see docs/current_diets.rst)."
     )
 
 

@@ -41,7 +41,9 @@ pixi install
 
 ### Setup
 
-Configs that enable the dietary health module — including `config/validation.yaml` used below — need the IHME GBD mortality and dietary risk-exposure data, which are free for research use but require registration and manual download from https://vizhub.healthdata.org/. See the [Data Sources documentation](https://sustainable-solutions-lab.github.io/GLADE/data_sources.html#manual-download-checklist) for detailed instructions; place the files in `data/manually_downloaded/`.
+Health-enabled configs anchor the baseline diet to IHME GBD dietary-exposure
+data by default; those two archives require registration and manual download.
+See the [Data Sources documentation](https://sustainable-solutions-lab.github.io/GLADE/data_sources.html#manual-download-checklist) for instructions. A manual mortality export is needed only when selecting `health.mortality_source: ihme_gbd`.
 
 A free USDA FoodData Central key is needed only to refresh nutritional data (`data.usda.retrieve_nutrition: true`); see [`config/secrets.yaml.example`](config/secrets.yaml.example).
 

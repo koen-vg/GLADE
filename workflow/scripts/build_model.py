@@ -1193,6 +1193,9 @@ if __name__ == "__main__":
     # config or any scenario). When disabled, the health processing inputs are
     # absent and no health data is needed on disk.
     if snakemake.params.health_enabled:
+        n.meta["health_mortality_source"] = snakemake.config["health"][
+            "mortality_source"
+        ]
         health.add_health_stores(
             n,
             snakemake.input.health_cluster_summary,

@@ -17,17 +17,14 @@ Manual Download Checklist
 
 Several licensed datasets cannot be fetched automatically. While their use is free for non-commercial research purposes, these have to be downloaded manually or require API key registration.
 
-**Required only for the health module / GBD diet anchoring:**
+**Required only for GBD diet anchoring or optional IHME mortality:**
 
-The following IHME GBD datasets are needed **only** when the health
-module is enabled (``health.enabled: true``) or when the baseline diet
-anchors to GBD (``diet.anchor_groups_to_gbd``; see
-:ref:`current-diets-gbd-anchoring`). With both off -- the default -- they
-are not required and the workflow runs without them. If they are missing
-while needed, the workflow stops at startup with an explicit message.
+The following IHME GBD inputs are needed only for the features stated below.
+If they are missing while needed, the workflow stops at startup with an
+explicit message.
 
-1. Create an account with IHME and download GBD death rates as described in :ref:`ihme-gbd-mortality`.
-2. Download the IHME 2023 dietary risk exposure estimates (two archives, ``IHME_GBD_2023_RISK_EXPOSURE_DIET_1`` and ``_2``) (:ref:`ihme-diet-risk-exposure`).
+1. When ``diet.anchor_groups_to_gbd`` resolves to true, download the IHME 2023 dietary risk exposure estimates (two archives, ``IHME_GBD_2023_RISK_EXPOSURE_DIET_1`` and ``_2``) (:ref:`ihme-diet-risk-exposure`).
+2. Only when ``health.mortality_source: ihme_gbd`` is selected, create an account with IHME and download GBD death rates as described in :ref:`ihme-gbd-mortality`.
 
 **Optional (only to regenerate curated health inputs):**
 
@@ -766,14 +763,67 @@ GDP per capita estimates (current prices, USD) from the World Economic Outlook d
 Health and Epidemiology Data
 -----------------------------
 
+.. _who-ghe-mortality:
+
+WHO Global Health Estimates 2021 -- Mortality Rates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Provider**: World Health Organization (WHO)
+
+**Description**: Cause-specific mortality rates by country, age and sex. This
+is the default mortality source for the health module.
+
+**Version and coverage**: The API currently serves Global Health Estimates
+2021, covering 2000-2021. The workflow retrieves both-sex, age-specific rates
+for ischaemic heart disease, ischaemic stroke, diabetes mellitus, and colon
+and rectum cancers.
+
+**Access**: https://www.who.int/data/global-health-estimates/; retrieved from
+the public OData API at https://xmart-api-public.who.int/DEX_CMS/GHE_FULL.
+
+**Terms**: WHO terms and conditions for data compilations, aggregations,
+evaluations and analyses apply:
+https://www.who.int/about/policies/publishing/data-policy/terms-and-conditions.
+Reuse is limited to public-health purposes. The required acknowledgement must
+name WHO, the dataset title and year, the date of access, and the countries
+that supplied the underlying data. Record the date on which the retrieval rule
+ran and acknowledge every country represented in the analysis.
+
+**Citation**: Global Health Estimates 2021: Deaths by Cause, Age, Sex, by
+Country and by Region, 2000-2021. Geneva, World Health Organization; 2024.
+
+**Retrieval and processing**: ``retrieve_who_ghe_mortality.py`` downloads the
+configured year automatically. ``prepare_who_ghe_mortality.py`` converts rates
+from deaths per 100,000 to deaths per 1,000 and emits the age table consumed by
+the health model. WHO reports one 85+ group; its rate is applied to the model's
+85-89, 90-94 and 95+ groups. This preserves deaths over the combined 85+
+population but assumes a flat mortality rate within that range, biasing the
+oldest-age YLL and relative-risk weights. GHE has no rows for five configured
+territories, which use explicit proxies: American Samoa from Samoa, French
+Guiana from France, Puerto Rico from the United States, Palestine from Jordan,
+and Taiwan from the Republic of Korea.
+
+The public API endpoint is not an immutable archive and WHO reserves the right
+to update it. Snakemake retains the raw response under ``data/downloads/``;
+preserve that file with an archived analysis when exact reproduction matters,
+along with its access date.
+
+WHO GHE exposes broad diabetes mellitus rather than type 2 diabetes. The model
+therefore uses broad diabetes mortality as the baseline burden for its T2DM
+relative-risk pathway. This matches the previous GBD mortality preparation,
+which also mapped broad diabetes mortality to T2DM, but remains a source-label
+mismatch; see :doc:`health`.
+
 .. _ihme-gbd-mortality:
 
-IHME GBD 2023 -- Mortality Rates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IHME GBD 2023 -- Mortality Rates (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Provider**: Institute for Health Metrics and Evaluation (IHME)
 
-**Description**: Cause-specific mortality rates by country, age, and sex from the Global Burden of Disease Study 2023. Used to calculate baseline disease burden attributable to dietary risk factors.
+**Description**: Optional alternative to the default WHO GHE mortality rates.
+Select it with ``health.mortality_source: ihme_gbd`` in the base config. The
+mortality source is structural and cannot be changed by a scenario override.
 
 **Version**: GBD 2023; CSV export from the GBD Results Tool
 
@@ -825,6 +875,28 @@ Two companion tables under ``data/curated/health/`` are our own derived results 
 * ``rr_age_attenuation.csv`` -- per ``(risk_factor, cause, age)`` multiplicative log-RR attenuation. The Burden of Proof tool serves only all-ages curves, so the age structure is reconstructed: the age *shape* is the GBD 2019 RR appendix (indirect; ``IHME_GBD_2019_RELATIVE_RISKS_Y2020M10D15.XLSX``), normalized to GBD's 60-64 reference age group (the median age-at-event of the cardiovascular age trend, to which GBD assigns the estimated risk curve), so the BoP "All Ages" curve is reproduced at age 60-64. Regenerated once via ``workflow/scripts/generate_rr_age_attenuation.py``.
 * ``rr_tmrel.csv`` -- theoretical minimum risk exposure level per risk factor, from GBD 2023 appendix Table 18 (in GBD intake basis; converted to model basis at build time). ``red_meat`` is treated as monotonic-harmful (TMREL 0) to match its literature override.
 
+.. _ihme-gbd-location-hierarchy:
+
+IHME GBD 2021 -- Location Hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Provider**: Institute for Health Metrics and Evaluation (IHME)
+
+**Description**: The level-3 country and territory list used to exclude
+subnational rows from the GBD 2023 dietary risk-exposure files. The 2023
+exposure files use the same identifiers for the national rows consumed here.
+
+**Version**: GBD 2021 Appendix 1, hierarchy file dated 15 May 2024
+
+**Access**: Automatically downloaded from
+https://www.healthdata.org/sites/default/files/2024-05/IHME_GBD_2021_A1_HIERARCHIES_Y2024M05D15.XLSX.
+
+**License and citation**: IHME's Free-of-Charge Non-commercial User Agreement
+and GBD attribution requirements apply; see
+https://www.healthdata.org/data-tools-practices/data-practices/ihme-free-charge-non-commercial-user-agreement.
+Cite the Global Burden of Disease Collaborative Network, Global Burden of
+Disease Study 2021 Results, IHME, 2024.
+
 .. _ihme-diet-risk-exposure:
 
 IHME GBD 2023 -- Dietary Risk Exposure Estimates
@@ -834,7 +906,7 @@ IHME GBD 2023 -- Dietary Risk Exposure Estimates
 
 **Description**: Country-level dietary risk exposure estimates from the Global Burden of Disease Study 2023, covering 15 dietary risk factors with mean exposure and uncertainty by country, age group, sex, and year. Used as the **anchor source** for risk-factor food groups (fruits, vegetables, whole_grains, legumes, nuts_seeds, red_meat) in the baseline diet, so the model's intake basis matches the basis the GBD relative-risk functions are calibrated against. GDD-IA provides the fallback when GBD lacks a country.
 
-The 2023 release ships only per-5-year-age-bucket estimates split by sex; it does not include the ready-made "25 plus" both-sex aggregate that the 2019 release provided. ``prepare_gbd_food_group_intake.py`` therefore reconstructs the adult (25+) both-sex exposure by population-weighting the adult age buckets (using per-country age-bucket population for the reference year) and averaging the two sexes. The bulk files also contain subnational locations (US states, UK nations, Indian/Pakistani provinces, ...) whose names collide with countries, so processing restricts to national locations by ``location_id`` (taken from the GBD 2023 death-rates file) rather than by name.
+The 2023 release ships only per-5-year-age-bucket estimates split by sex; it does not include the ready-made "25 plus" both-sex aggregate that the 2019 release provided. ``prepare_gbd_food_group_intake.py`` therefore reconstructs the adult (25+) both-sex exposure by population-weighting the adult age buckets (using per-country age-bucket population for the reference year) and averaging the two sexes. The bulk files also contain subnational locations (US states, UK nations, Indian/Pakistani provinces, ...) whose names collide with countries, so processing restricts to national locations by ``location_id`` from IHME's automatically downloaded public GBD 2021 location hierarchy rather than by name.
 
 **Version**: GBD 2023; two ZIP archives, each containing per-risk-factor CSVs (~90 MB each)
 
@@ -1081,7 +1153,8 @@ Most datasets used in this project require attribution. Some disallow redistribu
 
 **Restrictive licenses (non-commercial use and/or no redistribution)**:
 
-* **Non-commercial, no redistribution** (IHME GBD mortality, IHME GBD relative risks, IHME GBD dietary exposure): Free for non-commercial research; data may not be redistributed or used commercially without permission
+* **Non-commercial, no redistribution** (IHME GBD mortality, relative risks, dietary exposure, and location hierarchy): Free for non-commercial research; data may not be redistributed or used commercially without permission
+* **WHO data terms** (WHO Global Health Estimates): Publicly accessible and reusable for public-health purposes with attribution, subject to WHO's dataset terms
 * **Non-commercial with attribution** (GADM, FADN): Free for academic/non-commercial use; GADM prohibits redistribution, FADN requires EU attribution
 * **FAO terms** (GLEAM 3.0 Supplement, FAO Nutrient Conversion): Non-commercial reuse with FAO acknowledgement; commercial use requires prior permission
 * **Custom terms** (ESA Biomass CCI, Water Footprint Network): Various provider-specific terms; see individual entries above

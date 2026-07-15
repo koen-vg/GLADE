@@ -11,18 +11,20 @@ This directory contains datasets that must be manually downloaded because they:
 - Have terms-of-service that preclude automated bulk downloads
 - Require authentication or registration
 
-All of these are IHME GBD datasets. Normal workflow runs need the mortality
-file and two dietary risk-exposure directories **only** when the health module
-is enabled (`health.enabled: true`) or when the baseline diet anchors to GBD
-(`diet.anchor_groups_to_gbd`). The relative-risk workbook is optional and is
-used only to regenerate a committed curated table. With health and anchoring
-both off — the default — the workflow runs without any manually-downloaded
-data. The baseline diet itself needs none: the default GDD-IA source is fetched
-automatically from Zenodo (see `docs/data_sources.rst`).
+All of these are IHME GBD datasets. The dietary-exposure archives are needed
+when the baseline diet anchors to GBD (`diet.anchor_groups_to_gbd`). The
+mortality export is needed only when health is enabled and
+`health.mortality_source: ihme_gbd`. The relative-risk workbook is optional
+and is used only to regenerate a committed curated table. With anchoring off
+and WHO mortality selected, normal workflow runs need no manually downloaded
+data. See `docs/data_sources.rst` for details.
 
 ## Current Files
 
 ### IHME-GBD_2023-death-rates-2020.csv
+
+This file is an optional alternative to the default WHO GHE mortality data.
+Select it with `health.mortality_source: ihme_gbd`.
 
 **Source:** IHME Global Burden of Disease Study 2023
 **Download:** https://vizhub.healthdata.org/gbd-results/
@@ -52,7 +54,7 @@ The following permalink reproduces this query for year 2020: https://vizhub.heal
 2. Map IHME causes to model cause codes
 3. Aggregate sub-buckets (12-23 months + 2-4 years → 1-4)
 4. Convert rates from per 100k to per 1k
-5. Output to `processing/{name}/gbd_mortality_rates.csv`
+5. Output to `processing/{name}/health/gbd_mortality_rates.csv`
 
 **License:** IHME Free-of-Charge Non-commercial User Agreement
 
@@ -93,9 +95,9 @@ Unlike the GBD 2019 release, the 2023 files provide no ready-made "25 plus"
 both-sex aggregate, so the script reconstructs the adult (25+) both-sex
 exposure by population-weighting the adult 5-year age buckets (using
 per-country age-bucket population) and averaging the two sexes. National
-locations are selected by `location_id` (from the death-rates file) because
-the bulk files also contain subnational units whose names collide with
-countries (e.g. "Georgia").
+locations are selected by `location_id` from IHME's automatically downloaded
+public GBD 2021 location hierarchy because the bulk files also contain
+subnational units whose names collide with countries (e.g. "Georgia").
 
 **License:** IHME Free-of-Charge Non-commercial User Agreement
 
@@ -142,7 +144,7 @@ When new GBD data is released:
 2. Configure query with parameters above
 3. Download as CSV
 4. Save as `IHME-GBD_2023-death-rates-{year}.csv` (the year in the filename must match `baseline_year`)
-6. Rerun workflow: `tools/smk processing/{name}/gbd_mortality_rates.csv`
+6. Rerun the workflow with `health.mortality_source: ihme_gbd`
 
 ### IHME GBD Dietary Risk Exposure Estimates
 

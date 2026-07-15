@@ -337,14 +337,14 @@ rule prepare_gbd_food_group_intake:
 
     Extracts country-level adult dietary intake (g/day) from the GBD 2023
     risk-exposure CSVs (split across two release archives). Restricts to
-    national locations via the death-rates location_id set (the bulk files
-    also carry colliding subnational names). Used to average with GDD
-    estimates and for cross-validation.
+    national locations via IHME's public location hierarchy (the bulk files
+    also carry colliding subnational names). Used to average with GDD estimates
+    and for cross-validation.
     """
     input:
         gbd_dir_1="data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_1",
         gbd_dir_2="data/manually_downloaded/IHME_GBD_2023_RISK_EXPOSURE_DIET_2",
-        national_locations=f"data/manually_downloaded/IHME-GBD_2023-death-rates-{config['baseline_year']}.csv",
+        national_locations="data/downloads/gbd/gbd_2021_location_hierarchy.xlsx",
         population_age="<processing>/{name}/population_age.csv",
     params:
         reference_year=config["baseline_year"],

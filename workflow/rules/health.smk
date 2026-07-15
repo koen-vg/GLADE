@@ -32,6 +32,38 @@ rule prepare_gbd_mortality:
         "../scripts/prepare_gbd_mortality.py"
 
 
+rule prepare_who_ghe_mortality:
+    input:
+        who_ghe_mortality=who_ghe_mortality_path(),
+    params:
+        countries=config["countries"],
+        causes=config["health"]["causes"],
+        ghe_cause_id={
+            cause: config["health"]["ghe_cause_id"][cause]
+            for cause in config["health"]["causes"]
+        },
+        reference_year=config["baseline_year"],
+    output:
+        mortality="<processing>/{name}/health/who_ghe_mortality_rates.csv",
+    group:
+        "prep"
+    resources:
+        runtime="1m",
+        mem_mb=200,
+    log:
+        "<logs>/{name}/prepare_who_ghe_mortality.log",
+    benchmark:
+        "<benchmarks>/{name}/prepare_who_ghe_mortality.tsv"
+    script:
+        "../scripts/prepare_who_ghe_mortality.py"
+
+
+_mortality_rates_path = {
+    "who_ghe": "<processing>/{name}/health/who_ghe_mortality_rates.csv",
+    "ihme_gbd": "<processing>/{name}/health/gbd_mortality_rates.csv",
+}[config["health"]["mortality_source"]]
+
+
 rule prepare_relative_risks:
     """Build dietary RR curves from GBD 2023 Burden-of-Proof curves.
 
@@ -102,7 +134,7 @@ rule prepare_health_costs:
         diet="<processing>/{name}/dietary_intake.csv",
         relative_risks="<processing>/{name}/health/relative_risks.csv",
         tmrel="<processing>/{name}/health/tmrel.csv",
-        dr="<processing>/{name}/health/gbd_mortality_rates.csv",
+        dr=_mortality_rates_path,
         population="<processing>/{name}/population_age.csv",
         life_table="<processing>/{name}/health/life_table.csv",
         food_groups="data/curated/food_groups.csv",

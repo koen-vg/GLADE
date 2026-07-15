@@ -47,6 +47,9 @@ PROVENANCE_EXEMPT_PREFIXES = {
     "planning_horizon",
     # Post-solve analysis only.
     "sensitivity_analysis",
+    # Mortality inputs are not consumed by calibration solves.
+    "health.mortality_source",
+    "health.ghe_cause_id",
     # Calibration application/generation machinery. Fit-relevant knobs in
     # these sections (e.g. food_loss_waste_calibration.food_groups,
     # food_demand_calibration.min_multiplier) stay in the snapshot.

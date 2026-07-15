@@ -106,19 +106,17 @@ Software to install manually
 Accounts and credentials
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Two IHME health inputs cannot be redistributed and must be placed
-manually. Both are needed only when the health module is enabled or the
-baseline diet anchors to GBD; with both off (the default), the workflow
-runs without them:
+One regular workflow input cannot be redistributed and must be placed
+manually: **IHME GBD 2023 dietary risk exposure data**. It is needed when the
+baseline diet anchors to GBD and is available after free registration. WHO
+mortality and the GBD 2023 Burden-of-Proof relative-risk curves are retrieved
+automatically. An IHME GBD mortality export is a manually downloaded optional
+alternative to WHO mortality. See the :ref:`manual-download-checklist` in
+:doc:`data_sources` for the exact conditions and paths.
 
-* **IHME GBD 2023 mortality rates** — `IHME GBD Results Tool
-  <https://vizhub.healthdata.org/gbd-results/>`_ (free registration).
-* **IHME GBD 2023 dietary risk exposure data** -- two archives from the
-  same source (free registration).
-
-The **IHME GBD 2019 relative-risk workbook** is needed only by the
-standalone curation script that regenerates the committed age-attenuation
-table; normal workflow runs do not consume it.
+The **IHME GBD 2019 relative-risk workbook** is needed only by the standalone
+curation script that regenerates the committed age-attenuation table; normal
+workflow runs do not consume it.
 
 The baseline-diet data needs no manual step: the default GDD-IA source
 is fetched automatically from Zenodo (see :doc:`current_diets` and the
@@ -165,13 +163,12 @@ Installation
 
       Replace ``"2.17"`` with the version reported by ``ldd --version``.
 
-3. **Download the manually-licensed datasets** (optional): manually
-   downloaded data is only needed for configs that enable the dietary health
-   module; with health disabled (the default), the workflow runs without it.
-   The tutorial configs do enable health, so to follow the :doc:`tutorial`
-   (including the dry run below), follow the :ref:`manual-download-checklist`
-   in :doc:`data_sources` to place the IHME GBD mortality and dietary
-   risk-exposure data under ``data/manually_downloaded/``.
+3. **Download the manually-licensed datasets** (optional): the tutorial
+   configs enable GBD baseline-diet anchoring, so follow the
+   :ref:`manual-download-checklist` in :doc:`data_sources` to place the two
+   IHME GBD dietary risk-exposure archives under
+   ``data/manually_downloaded/``. An IHME mortality export is needed only when
+   ``health.mortality_source: ihme_gbd`` is selected.
 
 4. **Verify the setup** with a dry run:
 

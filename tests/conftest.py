@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SNAKEFILE = PROJECT_ROOT / "workflow" / "Snakefile"
 CONFIG_DEFAULT = PROJECT_ROOT / "config" / "default.yaml"
 CONFIG_TEST = PROJECT_ROOT / "tests" / "config" / "test.yaml"
+CONFIG_TEST_HEALTH = PROJECT_ROOT / "tests" / "config" / "test_health.yaml"
 RESULTS_DIR = PROJECT_ROOT / "results" / "test"
 
 
@@ -27,6 +28,7 @@ def run_snakemake_target(
     cores: int = 4,
     dryrun: bool = False,
     forceall: bool = False,
+    additional_configfiles: tuple[Path, ...] = (),
 ) -> None:
     """Run Snakemake targeting specific output files.
 
@@ -40,7 +42,7 @@ def run_snakemake_target(
         wf = api.workflow(
             resource_settings=ResourceSettings(cores=cores),
             config_settings=ConfigSettings(
-                configfiles=[CONFIG_DEFAULT, CONFIG_TEST],
+                configfiles=[CONFIG_DEFAULT, CONFIG_TEST, *additional_configfiles],
             ),
             snakefile=SNAKEFILE,
             workdir=PROJECT_ROOT,

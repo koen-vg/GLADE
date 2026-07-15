@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Koen van Greevenbroek
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Additional overrides for constructing the health-enabled WHO mortality DAG.
+
+name: "test_health"
+
+diet:
+  anchor_groups_to_gbd: false
+
+health:
+  enabled: true
+  mortality_source: "who_ghe"

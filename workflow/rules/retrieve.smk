@@ -1152,6 +1152,47 @@ rule retrieve_burden_of_proof:
         "../scripts/retrieve_burden_of_proof.py"
 
 
+rule retrieve_who_ghe_mortality:
+    """Download age-specific both-sex mortality rates from the WHO GHE API."""
+    params:
+        year=config["baseline_year"],
+        cause_ids=who_ghe_cause_ids(),
+    output:
+        mortality=who_ghe_mortality_path(),
+    resources:
+        runtime="5m",
+        mem_mb=200,
+    log:
+        "<logs>/shared/retrieve_who_ghe_mortality.log",
+    benchmark:
+        "<benchmarks>/shared/retrieve_who_ghe_mortality.tsv"
+    script:
+        "../scripts/retrieve_who_ghe_mortality.py"
+
+
+rule download_gbd_location_hierarchy:
+    """Download IHME's public GBD 2021 national location hierarchy."""
+    output:
+        "data/downloads/gbd/gbd_2021_location_hierarchy.xlsx",
+    params:
+        url=(
+            "https://www.healthdata.org/sites/default/files/2024-05/"
+            "IHME_GBD_2021_A1_HIERARCHIES_Y2024M05D15.XLSX"
+        ),
+    resources:
+        runtime="2m",
+        mem_mb=100,
+    log:
+        "<logs>/shared/download_gbd_location_hierarchy.log",
+    benchmark:
+        "<benchmarks>/shared/download_gbd_location_hierarchy.tsv"
+    shell:
+        r"""
+        mkdir -p "$(dirname {output})"
+        curl -L --fail --progress-bar -o "{output}" "{params.url}" > {log} 2>&1
+        """
+
+
 rule retrieve_eurostat_fodder:
     input:
         m49_codes="data/curated/M49-codes.csv",

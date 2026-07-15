@@ -27,15 +27,16 @@ name: "example"
 # emissions:
 #   ghg_price: 200  # USD per tonne CO2-eq
 
-# Enable the dietary health-burden module. This requires the manually-
-# downloaded IHME GBD data (see docs/health.rst); when left disabled (the
-# default) none of that data is needed. Enabling health also anchors the
-# baseline diet to GBD intake exposure (diet.anchor_groups_to_gbd defaults to
-# "match_health"); set that key explicitly to decouple the two.
+# Enable the dietary health-burden module. WHO GHE mortality is downloaded
+# automatically by default. Enabling health also anchors the baseline diet to
+# manually downloaded GBD intake exposure (diet.anchor_groups_to_gbd defaults
+# to "match_health"); set that key explicitly to decouple the two. Set
+# mortality_source to "ihme_gbd" to use a manual GBD mortality export instead.
 # The anchored baseline diet needs the gbd-anchored calibration artefact set,
 # which was fit against it (see docs/calibration.rst).
 # health:
 #   enabled: true
+#   mortality_source: "who_ghe"
 #   value_per_yll: 50000  # USD per year of life lost (0 = evaluate post-hoc only)
 # diet:
 #   anchor_groups_to_gbd: true  # or false to keep the source-only diet

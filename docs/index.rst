@@ -61,7 +61,7 @@ The model tracks greenhouse gas emissions from multiple sources — including la
 Diet and health
 ---------------
 
-Dietary constraints ensure that each country's population meets nutritional requirements across food groups. The model integrates epidemiological data from the `Global Burden of Disease <https://www.healthdata.org/research-analysis/gbd>`_ study to quantify how dietary patterns affect disease burden, measured in years of life lost. This makes it possible to optimize jointly for environmental sustainability and public health. See :doc:`nutrition`, :doc:`current_diets`, and :doc:`health`.
+Dietary constraints ensure that each country's population meets nutritional requirements across food groups. The model combines WHO mortality estimates with dietary relative-risk data from the `Global Burden of Disease <https://www.healthdata.org/research-analysis/gbd>`_ study to quantify how dietary patterns affect disease burden, measured in years of life lost. This makes it possible to optimize jointly for environmental sustainability and public health. See :doc:`nutrition`, :doc:`current_diets`, and :doc:`health`.
 
 .. figure:: https://github.com/Sustainable-Solutions-Lab/GLADE/releases/download/doc-figures/health_burden.png
    :width: 100%

@@ -22,12 +22,13 @@ scenarios:
 #   projections (UN WPP) and GDP clustering (IMF WEO).
 #
 # baseline_year: Reference year for observed baseline data. Controls FAOSTAT
-#   production, GDD-IA dietary intake, GBD health data, ESA CCI land cover,
+#   production, GDD-IA dietary intake, health data, ESA CCI land cover,
 #   and LUIcube grassland data.
 #   Hard constraints (data must exist for exact year):
 #     - LUIcube grassland: 1992-2020 (binding upper limit)
 #     - ESA CCI land cover: 1992-2022
-#     - GBD mortality: manual download required for matching year
+#     - WHO GHE mortality: 2000-2021 (retrieved automatically)
+#     - IHME GBD mortality: matching-year manual download when selected
 #   Soft constraints (nearest available year used automatically):
 #     - GDD-IA dietary intake: 1990-2020 in five-year steps
 #     - GBD dietary risk exposure: latest available is 2019
@@ -1290,14 +1291,16 @@ commodities:
 
 # --- section: health ---
 health:
-  # Whether to include the dietary health-burden module. When false, the
-  # manually-downloaded IHME GBD data is not needed (see docs/health.rst).
+  # Whether to include the dietary health-burden module.
   # IMPORTANT: this also drives diet.anchor_groups_to_gbd (sentinel
   # "match_health"), so flipping it changes the baseline diet. The git-tracked
   # calibration artefacts under data/curated/calibration/ are computed against a
   # specific baseline diet, so after changing this (or anchoring) you must rerun
   # `tools/calibrate` with matching options (see docs/calibration.rst).
   enabled: false
+  # Mortality data source. WHO GHE is public and retrieved automatically;
+  # ihme_gbd uses a manual Results Tool export (see docs/data_sources.rst).
+  mortality_source: "who_ghe"
   # How non-convex dose-response curves are enforced in the optimisation:
   # - "relax_and_fix": two-pass LP scheme (solve the relaxation, pin each
   #   non-convex curve to the segment of its relaxed intake, re-solve with a
@@ -1331,7 +1334,7 @@ health:
   # factors. The epidemiological evidence for this is, however,
   # lacking, and so we don't count "sugar" as a risk factor.
   # - sugar
-  # Health outcomes/causes to consider (must be present in IHME GBD data and relative risks)
+  # Health outcomes/causes to consider (must be present in mortality and RR data)
   causes:
   - CHD              # Coronary/Ischemic Heart Disease
   - Stroke           # Ischemic stroke (diet-attributable subtype)
@@ -1361,6 +1364,13 @@ health:
     Stroke: 495     # Ischemic stroke
     T2DM: 976       # Diabetes mellitus type 2
     CRC: 441        # Colon and rectum cancer
+  # WHO Global Health Estimates cause identifiers used for mortality. GHE
+  # reports broad diabetes mellitus rather than type 2 diabetes separately.
+  ghe_cause_id:
+    CHD: 1130       # Ischaemic heart disease
+    Stroke: 1141    # Ischaemic stroke
+    T2DM: 800       # Diabetes mellitus (all types)
+    CRC: 650        # Colon and rectum cancers
   # Per risk-factor overrides using log-linear RR from literature CSV files.
   # When a risk factor maps to a CSV path, the GBD dose-response curve is replaced
   # with a log-linear curve derived from the CSV, age-corrected using relative
