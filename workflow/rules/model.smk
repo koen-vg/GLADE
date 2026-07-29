@@ -424,6 +424,7 @@ rule solve_model:
         calculate_fixed_duals=lambda w: get_effective_config(w.scenario)["solving"][
             "calculate_fixed_duals"
         ],
+        compute_iis=lambda w: get_effective_config(w.scenario)["solving"]["compute_iis"],
         netcdf=lambda w: get_effective_config(w.scenario)["netcdf"],
         macronutrients=lambda w: get_effective_config(w.scenario)["macronutrients"],
         food_group_constraints=lambda w: get_effective_config(w.scenario)[

@@ -2402,7 +2402,12 @@ def run_solve(
         return n
     elif condition in {"infeasible", "infeasible_or_unbounded"}:
         logger.error("Model is infeasible or unbounded!")
-        if solver_name.lower() == "gurobi":
+        if not getattr(smk.params, "compute_iis", True):
+            # IIS computation on large models can take as long as the solve's
+            # own TimeLimit; sweeps that probe expected-infeasible corners
+            # (e.g. frontier truncation) disable solving.compute_iis.
+            logger.error("Skipping IIS computation (solving.compute_iis is false).")
+        elif solver_name.lower() == "gurobi":
             try:
                 logger.error("Computing IIS (Irreducible Inconsistent Subsystem)...")
 

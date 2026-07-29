@@ -2382,7 +2382,7 @@ properties:
 
   solving:
     type: object
-    required: [solver, io_api, threads, calculate_fixed_duals, options_gurobi, options_highs, export_for_tuning, time_limit, runtime, mem_mb, inline_analysis]
+    required: [solver, io_api, threads, calculate_fixed_duals, options_gurobi, options_highs, export_for_tuning, time_limit, compute_iis, runtime, mem_mb, inline_analysis]
     additionalProperties: false
     properties:
       solver:
@@ -2400,6 +2400,9 @@ properties:
       calculate_fixed_duals:
         type: boolean
         description: "Solve MILP, fix integer variables, then resolve as LP to obtain dual variables"
+      compute_iis:
+        type: boolean
+        description: "Compute an IIS on infeasible solves (gurobi only); disable for sweeps that probe expected-infeasible corners"
       options_gurobi:
         type: object
         patternProperties:
