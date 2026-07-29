@@ -153,6 +153,9 @@ if config["solving"]["inline_analysis"]:
             water_scarcity_pricing_enabled=lambda w: get_effective_config(w.scenario)[
                 "water_scarcity"
             ]["pricing_enabled"],
+            water_scarcity_metric=lambda w: get_effective_config(w.scenario)[
+                "water_scarcity"
+            ]["metric"],
             water_scarcity_price=lambda w: get_effective_config(w.scenario)[
                 "water_scarcity"
             ]["price"],

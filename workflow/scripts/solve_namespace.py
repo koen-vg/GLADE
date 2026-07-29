@@ -236,6 +236,40 @@ def affordability_reference_inputs(
     }
 
 
+def fixed_water_cf_reference_inputs(
+    water_cfg: dict,
+    scenario: str,
+    scenario_defs: dict,
+) -> dict[str, str]:
+    """Return the realized reference needed by fixed-characterization pricing."""
+    if not (
+        water_cfg["pricing_enabled"] and water_cfg["metric"] == "fixed_characterization"
+    ):
+        return {}
+    ref = water_cfg["fixed_reference_scenario"]
+    if ref is None:
+        raise ValueError(
+            f"Scenario {scenario}: fixed_characterization pricing requires "
+            "water_scarcity.fixed_reference_scenario"
+        )
+    if ref == scenario:
+        raise ValueError(
+            f"Scenario {scenario}: fixed water characterization cannot "
+            "reference itself"
+        )
+    if ref not in scenario_defs:
+        raise ValueError(
+            f"Scenario {scenario}: fixed water-CF reference '{ref}' is not "
+            "a defined scenario"
+        )
+    return {
+        "fixed_water_cf_reference": (
+            f"<results>/{{name}}/analysis/scen-{ref}/"
+            "fixed_water_characterization.parquet"
+        )
+    }
+
+
 def emissions_cap_is_relative(cap_cfg: dict) -> bool:
     """True when an enabled emissions cap uses the reference-relative form."""
     return cap_cfg["enabled"] and isinstance(cap_cfg["max_mtco2eq"], dict)
@@ -445,6 +479,7 @@ ANALYSIS_OUTPUT_NAMES = (
     "baseline_deviation",
     "food_prices",
     "water_metrics",
+    "fixed_water_characterization",
     "production_value",
     "food_energy",
     "barrier_constraints",
@@ -647,6 +682,11 @@ def build_scenario_entry(
     )
     inputs.update({key: rp(path) for key, path in reallocation_refs.items()})
 
+    fixed_water_refs = fixed_water_cf_reference_inputs(
+        eff["water_scarcity"], scenario, scenario_defs
+    )
+    inputs.update({key: rp(path) for key, path in fixed_water_refs.items()})
+
     if inline_analysis:
         inputs["population"] = rp("<processing>/{name}/population.csv")
         inputs["analysis_scripts"] = sorted(
@@ -694,6 +734,7 @@ def build_scenario_entry(
         "water_scarcity_tiers": eff["water"]["supply"]["scarcity_tiers"],
         "water_availability": eff["water"]["data"]["availability"],
         "water_scarcity_pricing_enabled": eff["water_scarcity"]["pricing_enabled"],
+        "water_scarcity_metric": eff["water_scarcity"]["metric"],
         "water_scarcity_price": eff["water_scarcity"]["price"],
         "water_scarcity_cap": eff["water_scarcity"]["cap_mm3_world_eq"],
         "water_scarcity_nonrenewable_cf": eff["water_scarcity"]["nonrenewable_cf"],
@@ -761,6 +802,14 @@ def build_scenario_entry(
                 eff["reallocation_cap"]["endpoint_scenario"],
             }
             if eff["reallocation_cap"]["enabled"]
+            else set()
+        )
+        | (
+            {eff["water_scarcity"]["fixed_reference_scenario"]}
+            if (
+                eff["water_scarcity"]["pricing_enabled"]
+                and eff["water_scarcity"]["metric"] == "fixed_characterization"
+            )
             else set()
         )
     )

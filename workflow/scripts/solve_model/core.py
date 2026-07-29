@@ -46,6 +46,7 @@ from workflow.scripts.solve_model.food_utility import (
     add_piecewise_food_utility,
     pop_piecewise_food_utility_value,
 )
+from workflow.scripts.solve_model.guardrails import assign_scalar_cap_dual
 from workflow.scripts.solve_model.health import (
     HEALTH_AUX_MAP,
     add_health_objective,
@@ -735,6 +736,73 @@ def add_water_scarcity_pricing_to_objective(
         ] = nonrenewable_cf * price_bnusd_per_mm3
 
 
+def add_water_metric_pricing_to_objective(
+    n: pypsa.Network,
+    metric: str,
+    price_usd_per_m3: float,
+    nonrenewable_cf: float | None,
+    fixed_cf_reference: str | None,
+) -> None:
+    """Price one of three harmonized blue-water metrics.
+
+    ``decision_dependent`` prices the integral under the endogenous tiered
+    scarcity curve. ``fixed_characterization`` applies one CF per renewable
+    supply group, frozen at a reference solution, to every tier in that group.
+    ``volume`` prices every supplied Mm3 equally. The latter two are applied
+    directly to supply-link dispatch before model creation.
+    """
+    if metric == "decision_dependent":
+        add_water_scarcity_pricing_to_objective(n, price_usd_per_m3, nonrenewable_cf)
+        return
+    if metric not in {"fixed_characterization", "volume"}:
+        raise ValueError(f"Unknown water-scarcity metric: {metric}")
+
+    links = n.links.static
+    water_links = links.index[links["carrier"] == "water_supply"]
+    if water_links.empty:
+        raise ValueError(f"{metric} pricing requires water-supply links")
+    sources = links.loc[water_links, "source"]
+
+    if metric == "volume":
+        weights = pd.Series(1.0, index=water_links)
+    else:
+        if fixed_cf_reference is None:
+            raise ValueError(
+                "fixed_characterization pricing requires a fixed-CF reference"
+            )
+        reference = pd.read_parquet(fixed_cf_reference)
+        required = {"link", "fixed_cf"}
+        missing_columns = required.difference(reference.columns)
+        if missing_columns:
+            raise ValueError(
+                "Fixed water-CF reference is missing columns: "
+                f"{sorted(missing_columns)}"
+            )
+        if reference["link"].duplicated().any():
+            raise ValueError("Fixed water-CF reference contains duplicate links")
+        fixed_cf = reference.set_index("link")["fixed_cf"]
+        renewable = water_links[sources.to_numpy() != "groundwater_nonrenewable"]
+        missing_links = renewable.difference(fixed_cf.index)
+        if not missing_links.empty:
+            raise ValueError(
+                f"Fixed water-CF reference lacks {len(missing_links)} renewable links"
+            )
+        weights = fixed_cf.reindex(water_links).astype(float)
+        weights.loc[sources == "groundwater_nonrenewable"] = (
+            0.0 if nonrenewable_cf is None else float(nonrenewable_cf)
+        )
+
+    price_bnusd_per_mm3 = (
+        price_usd_per_m3 / constants.MM3_PER_M3 * constants.USD_TO_BNUSD
+    )
+    cost_adder = price_bnusd_per_mm3 * weights
+    if "water_metric_cost_adder" not in n.links.static:
+        n.links.static["water_metric_cost_adder"] = 0.0
+    n.links.static.loc[water_links, "water_metric_cost_adder"] += cost_adder
+    n.links.static.loc[water_links, "marginal_cost"] += cost_adder
+    n.meta["water_objective_metric"] = metric
+
+
 def add_water_scarcity_cap(n: pypsa.Network, cap_mm3_world_eq: float) -> None:
     """Cap total water scarcity at solve time (epsilon-constraint).
 
@@ -764,11 +832,17 @@ def add_water_scarcity_joint_cap(
     ``n.optimize.create_model()``.
     """
     e = n.model.variables["Store-e"].sel(snapshot=n.snapshots[-1])
-    lhs = e.sel(Store="store:impact:water_scarcity") + nonrenewable_cf * e.sel(
-        Store="store:impact:groundwater_depletion"
+    lhs = e.sel(name="store:impact:water_scarcity") + nonrenewable_cf * e.sel(
+        name="store:impact:groundwater_depletion"
     )
     n.model.add_constraints(
         lhs <= cap_mm3_world_eq, name="GlobalConstraint-water_scarcity_joint_cap"
+    )
+    n.global_constraints.add(
+        "water_scarcity_joint_cap",
+        sense="<=",
+        constant=cap_mm3_world_eq,
+        type="water_scarcity_joint_cap",
     )
 
 
@@ -1560,23 +1634,33 @@ def run_solve(
     depletion_capped = smk.params.groundwater_cap is not None
     nonrenewable_cf = smk.params.water_scarcity_nonrenewable_cf
     groundwater_available = smk.params.water_availability == "aware"
-    if (scarcity_priced or scarcity_capped) and not smk.params.water_scarcity_tiers:
+    water_metric = smk.params.water_scarcity_metric
+    if (
+        scarcity_capped or (scarcity_priced and water_metric != "volume")
+    ) and not smk.params.water_scarcity_tiers:
         raise ValueError(
             "water_scarcity pricing/capping requires water.supply.scarcity_tiers: "
             "with collapsed tiers every characterisation factor is zero, "
             "so the scarcity store accumulates nothing and the lever is vacuous."
         )
     if scarcity_priced:
+        if scarcity_capped and water_metric != "decision_dependent":
+            raise ValueError(
+                "water_scarcity.cap_mm3_world_eq only caps the "
+                "decision_dependent metric"
+            )
         if nonrenewable_cf is not None and depletion_priced:
             raise ValueError(
                 "water_scarcity.nonrenewable_cf and groundwater_depletion pricing "
                 "both charge the depletion store; set nonrenewable_cf to null to "
                 "price groundwater depletion separately."
             )
-        add_water_scarcity_pricing_to_objective(
+        add_water_metric_pricing_to_objective(
             n,
+            water_metric,
             float(smk.params.water_scarcity_price),
             None if nonrenewable_cf is None else float(nonrenewable_cf),
+            getattr(smk.input, "fixed_water_cf_reference", None),
         )
     # A cap with nonrenewable_cf set charges mining against the cap via a joint
     # constraint, added after model creation below. Without it, the plain
@@ -2140,6 +2224,7 @@ def run_solve(
                 assign_protein_floor_duals(n)
                 assign_production_cost_cap_duals(n)
                 assign_emissions_cap_dual(n)
+                assign_scalar_cap_dual(n, "water_scarcity_joint_cap")
             if not skip_post_processing:
                 with _phase("post_processing"):
                     n.optimize.post_processing()

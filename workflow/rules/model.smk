@@ -313,6 +313,15 @@ def solve_model_inputs(w):
         {key: path.format(name=w.name) for key, path in reallocation_refs.items()}
     )
 
+    fixed_water_refs = fixed_water_cf_reference_inputs(
+        eff_cfg["water_scarcity"],
+        w.scenario,
+        load_scenario_defs(),
+    )
+    inputs.update(
+        {key: path.format(name=w.name) for key, path in fixed_water_refs.items()}
+    )
+
     return inputs
 
 
@@ -476,6 +485,9 @@ rule solve_model:
         water_scarcity_pricing_enabled=lambda w: get_effective_config(w.scenario)[
             "water_scarcity"
         ]["pricing_enabled"],
+        water_scarcity_metric=lambda w: get_effective_config(w.scenario)[
+            "water_scarcity"
+        ]["metric"],
         water_scarcity_price=lambda w: get_effective_config(w.scenario)[
             "water_scarcity"
         ]["price"],

@@ -520,16 +520,23 @@ properties:
 
   water_scarcity:
     type: object
-    required: [pricing_enabled, price, cap_mm3_world_eq, nonrenewable_cf]
+    required: [metric, fixed_reference_scenario, pricing_enabled, price, cap_mm3_world_eq, nonrenewable_cf]
     additionalProperties: false
     properties:
+      metric:
+        type: string
+        enum: [decision_dependent, fixed_characterization, volume]
+        description: "Blue-water metric priced in the objective"
+      fixed_reference_scenario:
+        type: [string, "null"]
+        description: "Scenario whose realized water use fixes regional supply-link CFs for fixed_characterization"
       pricing_enabled:
         type: boolean
-        description: "Whether to price accumulated water scarcity in the objective"
+        description: "Whether to price the selected blue-water metric in the objective"
       price:
         type: number
         minimum: 0
-        description: "Water-scarcity shadow price, USD per m3 world-equivalent"
+        description: "Objective weight in USD per m3 of the selected metric"
       cap_mm3_world_eq:
         type: [number, "null"]
         minimum: 0

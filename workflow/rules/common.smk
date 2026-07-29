@@ -24,6 +24,7 @@ from workflow.scripts.solve_namespace import (
     barrier_reference_inputs,
     deviation_penalty_uses_calibrated,
     emissions_cap_reference_inputs,
+    fixed_water_cf_reference_inputs,
     get_effective_config as _get_effective_config,
     health_input_paths,
     reallocation_reference_inputs,

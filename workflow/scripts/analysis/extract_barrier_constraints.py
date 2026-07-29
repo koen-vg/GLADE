@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Extract active guardrail constraints and their shadow prices.
+"""Extract active global constraints and their shadow prices.
 
 Serialises the solved network's ``global_constraints`` registry -- the
 uniform "barrier" object of the barriers study. Every solve-time guardrail
@@ -10,7 +10,10 @@ uniform "barrier" object of the barriers study. Every solve-time guardrail
 the per-crop production-concentration caps, the reforestation cap) records
 its bound in ``constant`` and, after dual assignment, its shadow price in
 ``mu``. One row per constraint, so relief-vs-tightness and cost-of-
-protection can be read for all barriers from a single output.
+protection can be read for all barriers from a single output. The joint
+water-scarcity cap additionally reports its positive marginal cost in
+USD/m3; Linopy stores the dual of an upper bound with the opposite sign
+in bn USD/Mm3.
 """
 
 import logging
@@ -30,7 +33,8 @@ def extract_barrier_constraints(n: pypsa.Network) -> pd.DataFrame:
     """One row per solve-time guardrail constraint with its bound and dual.
 
     Columns: name, plus whichever of type/sense/constant/mu/crop/country/
-    carrier the registry carries. Empty when no guardrails were active.
+    carrier the registry carries, and ``shadow_price_usd_per_m3`` for the
+    joint water-scarcity cap. Empty when no global constraints were active.
     """
     gc = n.global_constraints.static
     if gc.empty:
@@ -42,4 +46,9 @@ def extract_barrier_constraints(n: pypsa.Network) -> pd.DataFrame:
     out.insert(0, "name", gc.index.astype(str))
     if "mu" not in out.columns:
         out["mu"] = pd.NA
+    is_water_cap = out["name"].eq("water_scarcity_joint_cap")
+    out["shadow_price_usd_per_m3"] = pd.NA
+    out.loc[is_water_cap, "shadow_price_usd_per_m3"] = (
+        -pd.to_numeric(out.loc[is_water_cap, "mu"], errors="coerce") * 1000.0
+    )
     return out.reset_index(drop=True)

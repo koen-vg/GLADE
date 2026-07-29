@@ -381,8 +381,10 @@ water:
 # collapsed tiers every surface characterisation factor is zero and there is no
 # scarcity signal to price.
 water_scarcity:
+  metric: "decision_dependent" # "decision_dependent" | "fixed_characterization" | "volume"
+  fixed_reference_scenario: null # Required for priced fixed_characterization
   pricing_enabled: false
-  price: 0                  # Shadow price, USD per m3 world-equivalent
+  price: 0                  # Objective weight, USD per m3 of the selected metric
   cap_mm3_world_eq: null    # Epsilon-constraint cap (Mm3 world-eq); null = no cap
   # CF applied to non-renewable groundwater under scarcity pricing or capping:
   # each mined m3 is charged nonrenewable_cf * price, and counts

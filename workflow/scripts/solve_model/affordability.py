@@ -18,8 +18,10 @@ exogenous feed backstops (priced at grazing cost, so they carry a real
 feed-production cost). This is the recurring resource cost of producing
 the diet, and deliberately nothing else:
 
-- Externality prices (water scarcity, groundwater depletion, GHG,
-  health) are marginal costs on *stores* and never enter.
+- Externality prices never enter. Decision-dependent water scarcity,
+  groundwater depletion, GHG and health prices are marginal costs on stores;
+  fixed-CF and volume water prices are supply-link adders that are recorded
+  separately and subtracted here.
 - Slack (baseline-diet, feed, land, water) sits on generators outside
   the whitelist; churn (deviation) penalties and production-stability
   slacks are linopy-level objective terms, likewise excluded.
@@ -82,9 +84,16 @@ _PRODUCTION_COST_GEN_CARRIERS = [
 ]
 
 
-def _cost_bearing(static: pd.DataFrame, keep: pd.Series, kind: str) -> pd.Series:
+def _cost_bearing(
+    static: pd.DataFrame,
+    keep: pd.Series,
+    kind: str,
+    marginal_cost: pd.Series | None = None,
+) -> pd.Series:
     """Nonzero marginal costs among ``keep`` rows, logging dropped carriers."""
-    mc = pd.to_numeric(static["marginal_cost"], errors="coerce").fillna(0.0)
+    if marginal_cost is None:
+        marginal_cost = static["marginal_cost"]
+    mc = pd.to_numeric(marginal_cost, errors="coerce").fillna(0.0)
     dropped = sorted(static.loc[(mc != 0.0) & ~keep, "carrier"].unique())
     if dropped:
         logger.info(
@@ -107,7 +116,10 @@ def production_cost_links(n: pypsa.Network) -> pd.Series:
         (links["carrier"] == "water_supply")
         & (links["source"] == "groundwater_nonrenewable")
     )
-    return _cost_bearing(links, keep, "link")
+    marginal_cost = links["marginal_cost"]
+    if "water_metric_cost_adder" in links:
+        marginal_cost = marginal_cost - links["water_metric_cost_adder"].fillna(0.0)
+    return _cost_bearing(links, keep, "link", marginal_cost)
 
 
 def production_cost_generators(n: pypsa.Network) -> pd.Series:

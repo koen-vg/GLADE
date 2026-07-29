@@ -25,6 +25,9 @@ from workflow.scripts.analysis.extract_barrier_reference import (
 from workflow.scripts.analysis.extract_baseline_deviation import (
     extract_baseline_deviation,
 )
+from workflow.scripts.analysis.extract_fixed_water_characterization import (
+    extract_fixed_water_characterization,
+)
 from workflow.scripts.analysis.extract_food_energy import extract_food_energy
 from workflow.scripts.analysis.extract_food_prices import extract_food_prices
 from workflow.scripts.analysis.extract_ghg_attribution import (
@@ -156,6 +159,7 @@ def run_analysis(
     # --- Water metrics (AWARE scarcity / withdrawal per region) ---
     logger.info("Extracting water metrics...")
     water_metrics = extract_water_by_region(n)
+    fixed_water_characterization = extract_fixed_water_characterization(n)
 
     # --- Production value (gross agricultural value at producer prices) ---
     logger.info("Extracting production value...")
@@ -262,6 +266,7 @@ def run_analysis(
         "baseline_deviation": baseline_deviation,
         "food_prices": food_prices,
         "water_metrics": water_metrics,
+        "fixed_water_characterization": fixed_water_characterization,
         "production_value": production_value,
         "food_energy": food_energy,
         "barrier_constraints": barrier_constraints,
