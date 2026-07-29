@@ -3,9 +3,9 @@
 # workflow/scripts/write_calibration_provenance.py via
 # tools/calibrate; do not edit by hand.
 # Licensing: see the annotation in REUSE.toml.
-base_config: config/water_tradeoff_fixed_diet.yaml
-generated_at: '2026-07-28T18:14:59+00:00'
-git_commit: 24203b39612c744502f71d5ad94c503d23a1c738
+base_config: config/water_relief_core.yaml
+generated_at: '2026-07-28T23:39:25+00:00'
+git_commit: 9cec8497ea00872f8566b26b86ea02f4c9a02d65
 source: water
 structural_config:
   aggregation.irrigated_area_source: current
@@ -199,6 +199,7 @@ structural_config:
   - rendered-fat
   biomass.enforce_baseline_demand: true
   biomass.enforce_fiber_demand: true
+  biomass.marginal_values_usd_per_tonne: 0
   byproducts:
   - beet-pulp
   - wheat-bran
@@ -639,7 +640,6 @@ structural_config:
   data.faostat.fbs_production_element_code: 5511
   data.faostat.qcl_production_element_code: 5510
   data.gaez.climate_model: GFDL-ESM4
-  data.gaez.climate_model_ensemble: ENSEMBLE
   data.gaez.climate_scenario: SSP126
   data.gaez.input_level: H
   data.gaez.period: FP2140
@@ -904,6 +904,21 @@ structural_config:
   - sugar
   - stimulants
   - animal_fat
+  food_groups.max_per_capita.animal_fat: 50
+  food_groups.max_per_capita.dairy: 2865
+  food_groups.max_per_capita.eggs: 213
+  food_groups.max_per_capita.fruits: 658
+  food_groups.max_per_capita.grain: 1403
+  food_groups.max_per_capita.legumes: 300
+  food_groups.max_per_capita.nuts_seeds: 79
+  food_groups.max_per_capita.oil: 155
+  food_groups.max_per_capita.poultry: 241
+  food_groups.max_per_capita.red_meat: 285
+  food_groups.max_per_capita.starchy_vegetable: 1221
+  food_groups.max_per_capita.stimulants: 50
+  food_groups.max_per_capita.sugar: 133
+  food_groups.max_per_capita.vegetables: 785
+  food_groups.max_per_capita.whole_grains: 300
   food_loss_waste_calibration.food_groups:
   - vegetables
   - fruits
@@ -970,7 +985,6 @@ structural_config:
   - legumes
   - red_meat
   - whole_grains
-  health.ssb_sugar_g_per_100g: 5.7
   irrigation.irrigated_crops: all
   land.conversion_cost_forest_usd_per_ha: 8000
   land.conversion_cost_nonforest_usd_per_ha: 2000
