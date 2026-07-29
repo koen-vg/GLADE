@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Koen van Greevenbroek
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Scratch probe: does the "relief is ~fully achievable" headline survive the
+# move to the GDD-IA diet and the rebased model? Overlay on
+# config/water_carbon_tradeoff_by_cap_fixed_diet.yaml (pass BOTH, this last).
+# Reuses that build. Fixed diet, no GHG price, free reallocation.
+
+name: "water_carbon_tradeoff_by_cap_fixed_diet"
+
+scenarios:
+  # Unpriced reference at full reallocation flexibility.
+  prbw00000:
+    &probe
+    emissions: {ghg_pricing_enabled: false, ghg_price: 0}
+    deviation_penalty:
+      land:
+        crops: {max_relative_deviation: 1.0, regional_denominator: suitable}
+        grassland: {max_relative_deviation: 1.0, regional_denominator: suitable}
+      feed: {max_relative_deviation: 1.0}
+    water_scarcity: {pricing_enabled: false, price: 0}
+
+  # Mid price: where the early relief knee sat under the old diet.
+  prbw00100:
+    <<: *probe
+    water_scarcity: {pricing_enabled: true, price: 0.01}
+
+  # High price: the deep-relief end of the old sweep.
+  prbw10000:
+    <<: *probe
+    water_scarcity: {pricing_enabled: true, price: 1.0}
+
+  # Self-sufficiency guardrails pinned at their 2020 baseline, at the same
+  # water price as prbw10000. Paired against prbw10000 (no floors) they give
+  # the relief each floor blocks, per region.
+  prbc0w10000:
+    <<: *probe
+    water_scarcity: {pricing_enabled: true, price: 1.0}
+    food_energy: {floor: {enabled: true, relaxation: 0.0}}
+
+  prbp0w10000:
+    <<: *probe
+    water_scarcity: {pricing_enabled: true, price: 1.0}
+    protein: {floor: {enabled: true, relaxation: 0.0}}
+
+  # Current-day anchor: production frozen at 2020 (zero churn budget, slack
+  # priced), water unpriced. Defines the scarcity burden relief is measured
+  # against.
+  prbfrozen:
+    emissions: {ghg_pricing_enabled: false, ghg_price: 0}
+    deviation_penalty:
+      land:
+        crops: {max_relative_deviation: 0.0, regional_denominator: suitable, enable_slack: true}
+        grassland: {max_relative_deviation: 0.0, regional_denominator: suitable, enable_slack: true}
+      feed: {max_relative_deviation: 0.0, enable_slack: true}
+    water_scarcity: {pricing_enabled: false, price: 0}

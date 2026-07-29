@@ -1,0 +1,365 @@
+# SPDX-FileCopyrightText: 2026 Koen van Greevenbroek
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Minimalist water-relief paper: decisive reference and objective-ablation run.
+#
+# The reference diet is flexible through calibrated piecewise utility, with
+# calories fixed per country. Production uses the calibrated L1 adjustment
+# costs and no slack-backed policy budget. The frozen scenario is a physical
+# 2020 anchor only: its reconciliation slack makes its objective incomparable.
+#
+# The three objective arms share one feasible set and price grid:
+#   d = decision-dependent scarcity integral
+#   f = fixed characterization at the frozen reference's marginal tier
+#   v = blue-water volume
+# All solutions are cross-scored with the same analysis outputs. CF 100 is the
+# reference fossil-groundwater ordering weight for characterized objectives.
+
+name: "water_relief_core"
+
+health:
+  enabled: false
+
+emissions:
+  ghg_pricing_enabled: false
+  ghg_price: 0
+
+validation:
+  enforce_baseline_diet: false
+  slack_marginal_cost: 500.0
+
+food_utility_piecewise:
+  enabled: true
+
+macronutrients:
+  cal:
+    equal_to_baseline: true
+
+water_scarcity:
+  nonrenewable_cf: 100
+
+scenarios:
+  default: null
+
+  # Enforced-diet calibration anchor for the flexible-diet utility blocks.
+  baseline:
+    validation: {enforce_baseline_diet: true}
+    food_utility_piecewise: {enabled: false}
+    water_scarcity: {pricing_enabled: false, price: 0}
+
+  # Physical denominator and fixed-CF anchor. Reconciliation slack is allowed,
+  # so its objective and production cost are not used as economic comparators.
+  frozen:
+    validation: {enforce_baseline_diet: true}
+    food_utility_piecewise: {enabled: false}
+    deviation_penalty:
+      penalty_mode: hard
+      deviation_type: relative
+      land:
+        crops: {max_relative_deviation: 0.0, enable_slack: true, scope: regional, regional_denominator: suitable}
+        grassland: {max_relative_deviation: 0.0, enable_slack: true, scope: regional, regional_denominator: suitable}
+      feed: {max_relative_deviation: 0.0, enable_slack: true, scope: regional, regional_denominator: baseline}
+    water_scarcity: {pricing_enabled: false, price: 0}
+
+  # Slack-free unpriced flexible-diet economic comparator.
+  relief_ref:
+    water_scarcity: {pricing_enabled: false, price: 0}
+
+  # Dual validation at a binding partial-relief target and a +1% perturbation.
+  cap10000:
+    water_scarcity:
+      pricing_enabled: false
+      cap_mm3_world_eq: 10000000
+  cap10100:
+    water_scarcity:
+      pricing_enabled: false
+      cap_mm3_world_eq: 10100000
+
+  # Unpriced references for the E5 families: e000 = fixed-diet slack-free
+  # optimum (cost comparator for the e-family), n000 = no-new-depletion
+  # without a scarcity cap (isolates the cost of halting fossil mining).
+  e000:
+    validation:
+      enforce_baseline_diet: true
+    food_utility_piecewise:
+      enabled: false
+    water_scarcity:
+      pricing_enabled: false
+  n000:
+    water_scarcity:
+      pricing_enabled: false
+    groundwater_depletion:
+      cap_mm3: 0
+
+  # Deep-relief endpoint under free reallocation: normalizes the
+  # reallocation_cap fraction axis (E3) and anchors the merit-order story.
+  relief_max:
+    water_scarcity:
+      metric: decision_dependent
+      pricing_enabled: true
+      price: 1.0
+
+  # E3 relief-target grid (t-family). Cap values are shares of the frozen
+  # joint cf-100 burden (29,923,113 Mm3 world-eq): the name encodes permille
+  # of the frozen burden relieved (t250 = 25.0%, t998 = 99.8%). The x-suffix
+  # encodes the reallocation_cap fraction in permille (x0020..x0500) with
+  # xfree = cap disabled. t000 = no water cap (per-flexibility cost
+  # reference). All names are fixed-width (9 chars).
+  _generators:
+    # The constrained arms use trimmed per-fraction target lists: the
+    # tight-allowance corners are numerically hard (15-40 min each), and
+    # targets beyond each fraction's feasibility boundary are excluded once
+    # one infeasibility probe brackets the boundary (t500x0020 proven
+    # infeasible; t995x0500 unresolved within 2x40 min; deeper corners of
+    # the tight columns dropped).  The free arms keep the full grid.
+    - name: t{cap}x0020
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 17953868]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity: {pricing_enabled: false, cap_mm3_world_eq: "{cap}"}
+        reallocation_cap: {enabled: true, fraction: 0.02, baseline_scenario: frozen, endpoint_scenario: relief_max}
+    - name: t{cap}x0050
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 17953868, 14961557, 8976934, 4488467, 2094618,
+                   598462, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity: {pricing_enabled: false, cap_mm3_world_eq: "{cap}"}
+        reallocation_cap: {enabled: true, fraction: 0.05, baseline_scenario: frozen, endpoint_scenario: relief_max}
+    - name: t{cap}x0100
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 17953868, 14961557, 8976934, 4488467, 2094618,
+                   598462, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity: {pricing_enabled: false, cap_mm3_world_eq: "{cap}"}
+        reallocation_cap: {enabled: true, fraction: 0.1, baseline_scenario: frozen, endpoint_scenario: relief_max}
+    - name: t{cap}x0250
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 17953868, 14961557, 8976934, 4488467, 2094618,
+                   598462, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity: {pricing_enabled: false, cap_mm3_world_eq: "{cap}"}
+        reallocation_cap: {enabled: true, fraction: 0.25, baseline_scenario: frozen, endpoint_scenario: relief_max}
+    - name: t{cap}x0500
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 17953868, 14961557, 8976934, 4488467, 2094618,
+                   598462, 59846]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity: {pricing_enabled: false, cap_mm3_world_eq: "{cap}"}
+        reallocation_cap: {enabled: true, fraction: 0.5, baseline_scenario: frozen, endpoint_scenario: relief_max}
+    - name: t{cap}xfree
+      mode: grid
+      parameters:
+        cap:
+          values: [22442335, 20946179, 17953868, 14961557, 11969245,
+                   8976934, 5984623, 4488467, 2992311, 2094618,
+                   1196925, 598462, 299231, 149616, 59846]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity:
+          pricing_enabled: false
+          cap_mm3_world_eq: "{cap}"
+    - name: t000x{frac}
+      mode: grid
+      parameters:
+        frac:
+          values: [0.02, 0.05, 0.1, 0.25, 0.5]
+          name_format: "lambda x: f'{round(x * 1000):04d}'"
+      template:
+        water_scarcity:
+          pricing_enabled: false
+        reallocation_cap:
+          enabled: true
+          fraction: "{frac}"
+          baseline_scenario: frozen
+          endpoint_scenario: relief_max
+
+    # E2 controlled objective comparison (d/f/v families): dense log price
+    # grid, 0.003..3 USD/m3 of each metric, free reallocation. Names encode
+    # milli-USD (d0003..d3000).
+    - name: d{price}
+      mode: grid
+      parameters:
+        price:
+          space: log
+          start: 0.003
+          stop: 3.0
+          num: 8
+          name_format: "lambda x: f'{round(x * 1000):04d}'"
+      template:
+        water_scarcity:
+          metric: decision_dependent
+          pricing_enabled: true
+          price: "{price}"
+    - name: f{price}
+      mode: grid
+      parameters:
+        price:
+          space: log
+          start: 0.003
+          stop: 3.0
+          num: 8
+          name_format: "lambda x: f'{round(x * 1000):04d}'"
+      template:
+        water_scarcity:
+          metric: fixed_characterization
+          fixed_reference_scenario: frozen
+          pricing_enabled: true
+          price: "{price}"
+    - name: v{price}
+      mode: grid
+      parameters:
+        price:
+          space: log
+          start: 0.003
+          stop: 3.0
+          num: 8
+          name_format: "lambda x: f'{round(x * 1000):04d}'"
+      template:
+        water_scarcity:
+          metric: volume
+          pricing_enabled: true
+          price: "{price}"
+
+    # E5 robustness arms, all under free reallocation at a 6-cap subset.
+    # n-family: no new fossil depletion (hard groundwater cap) on top of the
+    # joint scarcity cap; caps keep the frozen joint-100 denominator.
+    - name: n{cap}
+      mode: grid
+      parameters:
+        cap:
+          values: [14961557, 8976934, 4488467, 2094618, 598462, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity:
+          pricing_enabled: false
+          cap_mm3_world_eq: "{cap}"
+        groundwater_depletion:
+          cap_mm3: 0
+    # e-family: fixed (enforced 2020) diet sensitivity.
+    - name: e{cap}
+      mode: grid
+      parameters:
+        cap:
+          values: [14961557, 8976934, 4488467, 2094618, 598462, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        validation:
+          enforce_baseline_diet: true
+        food_utility_piecewise:
+          enabled: false
+        water_scarcity:
+          pricing_enabled: false
+          cap_mm3_world_eq: "{cap}"
+    # g-family: cf-30 fossil-weighting diagnostic; caps are the same relief
+    # shares of the frozen joint cf-30 burden (20,458,246 Mm3 world-eq).
+    - name: g{cap}
+      mode: grid
+      parameters:
+        cap:
+          values: [10229123, 6137474, 3068737, 1432077, 409165, 102291]
+          name_format: "lambda x: f'{round((1 - x / 20458246) * 1000):03d}'"
+      template:
+        water_scarcity:
+          nonrenewable_cf: 30
+          pricing_enabled: false
+          cap_mm3_world_eq: "{cap}"
+
+    # h-family: flexibility-geometry sensitivity. The core flexibility axis
+    # is a single global endpoint-normalized budget, which can concentrate
+    # reorganization in the few regions where relief lives; this arm
+    # replaces it with hard slack-free REGIONAL churn budgets (share of
+    # suitable area per region, the retired study's geometry) at two
+    # levels, over the same cap subset.
+    # q000 = no water target: the feasibility CONTROL for the regional
+    # geometry (is the regional budget itself satisfiable at the base
+    # problem?).
+    - name: h{churn}q000
+      mode: grid
+      parameters:
+        churn:
+          values: [0.05, 0.2]
+          name_format: "lambda x: f'{round(x * 100):02d}'"
+      template:
+        water_scarcity:
+          pricing_enabled: false
+        deviation_penalty:
+          penalty_mode: hard
+          deviation_type: relative
+          land:
+            crops: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: suitable}
+            grassland: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: suitable}
+          feed: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: baseline}
+        solving:
+          time_limit: 20
+          options_gurobi: {LogToConsole: 0, OutputFlag: 1, Method: 1}
+    - name: h{churn}q{cap}
+      mode: grid
+      parameters:
+        churn:
+          values: [0.05, 0.2]
+          name_format: "lambda x: f'{round(x * 100):02d}'"
+        cap:
+          values: [14961557, 4488467, 149616]
+          name_format: "lambda x: f'{round((1 - x / 29923113) * 1000):03d}'"
+      template:
+        water_scarcity:
+          pricing_enabled: false
+          cap_mm3_world_eq: "{cap}"
+        deviation_penalty:
+          penalty_mode: hard
+          deviation_type: relative
+          land:
+            crops: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: suitable}
+            grassland: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: suitable}
+          feed: {max_relative_deviation: "{churn}", enable_slack: false, scope: regional, regional_denominator: baseline}
+        # Dual simplex proves infeasibility quickly where barrier wanders on
+        # an infeasibility ray; deep caps under regional churn are expected
+        # to be infeasible (the geometry contrast this family tests).
+        solving:
+          time_limit: 20
+          options_gurobi: {LogToConsole: 0, OutputFlag: 1, Method: 1}
+
+solving:
+  solver: "gurobi"
+  io_api: "direct"
+  threads: 2
+  options_gurobi: {LogToConsole: 0, OutputFlag: 1, Method: 2}
+  # Observed peak RSS is ~3 GB per solve+analysis; 5 GB declared so a 28 GB
+  # local resource budget admits 5 concurrent solves.
+  mem_mb: 5000
+  # Tight-flexibility deep-cap frontier arms are numerically hard (barrier
+  # crossover cleanup at ~15-25 min); the ceiling must clear them or the
+  # deterministic retries triple the waste.
+  time_limit: 40
+  runtime: 45
+  # The frontier sweep probes expected-infeasible corners (frontier
+  # truncation); an IIS there costs as much as the solve itself.
+  compute_iis: false
+  inline_analysis: true
+
+water:
+  temporal_resolution: 4
+  supply:
+    scarcity_tiers: true
+
+food_demand_calibration:
+  demand_headroom: 0.05
+
+calibration:
+  source: water
